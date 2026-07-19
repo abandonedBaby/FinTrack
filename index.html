@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 
+      FinTrack (v1.5.2)
+      A self-contained, offline-first personal financial scheduler.
+      Data is stored locally in your browser (LocalStorage).
+    -->
     <title>FinTrack</title>
+
+    <!-- Custom Integrated Favicon (Embedded Base64 PNG) -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJySURBVHgB7VdLaxNRGP0mSdpU8IuK6A9QERdB8IdY66IuunDX4k5w59pNW4vWunLpwsW6FRfSrqXuxYU7Fy4q+AtERUFEUfCDoD/SNNMkd85M6SSTmWmSSTKJeOBy596557vfd8855w4NDXGIYwU5WOD6MhU4YV96A4X6KsqYV+wS/B9Q5lTggD69gV5wQY5O8j2B9bL6vM8F9fAnDpgQf8bI60vQ008gQf7mZ766X93fXG59XpGZ0f1yYf4oH7+wXGqGPr453lXunK0uY4v4z1f0F//YpP4K+tB5pZl9Vv24X3+R/W9R7nB/6V0p1P6p83G50f6K1VbH/6B6f46P/6i86m9zGZ/6S1Z7Nfe94X1ZqZ9X2O/73Kq/UOn6G1RbeV55vux/Sby/Lp9fP+ffD3f17X79G6n3G+0v368673XvX+Pjr8rn1Z4vW+356/L58X15vX7uD7f2tff85vYI/vT3P8qH5Wv/5pE/D2yLwI2/O64IuLHeMv4+70o7f6D9v5B/X/D+wPZz9X9nL6p6v6P3K+L9p4TfD+P79NreD5p7+9n9f+r9Svf9N64IuIn18w77v6K/zYpI553Y++44T+BOf1uC9Srx4H8G+wL596f2pXf/Qvf+6Pz1G4T9mXv7Y34Ym7YvP47z5/2v556uLz9Y7T4mF/W9eX4Yf9A/6+f4vI9Y/I/v9PqD6fH77X/A/4fG+9wI33sI+/90vR6z/xP5tZ8e2PrG7H/Dft/4vj+fXz/nP//Y98XnS7fG/f73/4vV+6b3xefb2O4vUv/+9X45n9v/v2S7u8D/zPYA9v8b+B+f16vE/fO7D8r/Dfv/I/BfP6vXofvH97Z7f5j8/V+HwP9m/V9E4P7B/h8i8X1Srx6H7pPfC9v6w+D+6fwXEXjfrX8XyP6WrvY4vY/K9v9G/X5A9bZ1vN7v/f/F4f9l5+f//wX7f1yO7Z4OOf/j/69/Af8vIuT2v27f4v6x/j9Zf/v36eW9v7jX9/f6Afi/3L8Zf4/w8v9u/1M87f4X/X96v59Z/xevf9f8z7r/O3P5Mre6f5v71v6fWf8Vrn/H/+5/6v5uPf9p8Xn+/fL70/H89vj+/X78fX/8Xz+//9/f3w55/z4v83MffL/0ev//D/b/Z9vP4vX4f+h9ff58e5fP5/frf9D9/v4uX7+Lly/n//m9/3pZf66PX+v7P54v+38Z/3vX//7Pf5vL4v33df/0+f58fny/fF9+v4+XH8fP75fP7//3+fTf/94vff8/Ln8+vz6///n7//uP//8/fv4eX7+Of35fvz4/v35+f3///n7//P17/bT//95/Pn8eXj+fX5fPr8+f//9+/v//fn9+/95eXv4+Xx/Pnz//b75fH/+fn7+/35/fv/Xj+/v7/Pl+/f8AAAAASUVORK5CYII=">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,7 +34,6 @@
         }
     </script>
     <style>
-        /* Smooth page transitions and custom scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -44,9 +52,16 @@
         body {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            -webkit-touch-callout: none;
         }
         .modal-active {
             overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .calendar-dot {
+                width: 4px;
+                height: 4px;
+            }
         }
     </style>
 </head>
@@ -59,24 +74,21 @@
     <header class="border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-40 px-4 py-3 shadow-sm transition-colors duration-200">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <span class="p-2 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-lg text-white">
+                <span class="p-2 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl text-white shadow-md shadow-sky-500/10">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 px-1.5 py-0.5 rounded font-mono font-bold">v1.5.0</span>
+                        <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.2</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- Theme Switcher -->
                 <button id="themeToggleBtn" class="p-2.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700 transition" aria-label="Toggle Theme">
-                    <!-- Sun -->
                     <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707m2.828 9.9a5 5 0 117.072 0l-7.072 0z"></path></svg>
-                    <!-- Moon -->
                     <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 </button>
             </div>
@@ -85,22 +97,19 @@
 
     <!-- Cash Flow Dashboard Panel -->
     <section class="px-4 py-4 max-w-7xl mx-auto w-full">
-        <!-- Card Selector Dynamic Header -->
         <div class="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between mb-4">
             <div>
                 <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Cash Flow Dashboard</h2>
                 <p class="text-xs text-slate-400 dark:text-zinc-500" id="filterStatus">All cards, scoped by view</p>
             </div>
-            <!-- Card filter dropdown -->
             <div class="w-full md:w-auto flex items-center gap-2">
-                <span class="text-xs font-semibold text-slate-400">Card Filter:</span>
-                <select id="cardFilter" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg py-1.5 px-3 text-xs font-medium focus:ring-2 focus:ring-sky-500 w-full md:w-48 outline-none">
+                <span class="text-xs font-semibold text-slate-400">Filter:</span>
+                <select id="cardFilter" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg py-1.5 px-3 text-xs font-medium focus:ring-2 focus:ring-sky-500 w-full md:w-48 outline-none transition">
                     <option value="all">💳 All Cards / Accounts</option>
                 </select>
             </div>
         </div>
 
-        <!-- Metric Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <!-- Scoped Income -->
             <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 shadow-sm transition">
@@ -129,7 +138,7 @@
                 <div class="text-lg font-extrabold" id="scopeOwed">$0.00</div>
                 <p class="text-[9px] text-slate-400 mt-1">Unpaid active items</p>
             </div>
-            <!-- Net Left Over / Health -->
+            <!-- Cushion -->
             <div id="healthCard" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 shadow-sm transition col-span-2 lg:col-span-1">
                 <div class="flex items-center justify-between text-slate-600 dark:text-zinc-400 mb-1" id="healthHeader">
                     <span class="text-[10px] font-bold uppercase tracking-wider">Remaining Cushion</span>
@@ -143,12 +152,11 @@
 
     <!-- Main Workspace -->
     <main class="flex-grow px-4 max-w-7xl mx-auto w-full">
-        <!-- Desktop Grid / Mobile Tab Content Router -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Left Panel (Schedules / Entry Form & Directory) -->
+            <!-- Left Panel -->
             <section id="paneSchedules" class="lg:col-span-4 flex flex-col gap-5 hidden lg:flex">
-                <!-- Form Card -->
+                <!-- Form -->
                 <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
                     <h2 class="text-base font-bold flex items-center gap-2 mb-4" id="formHeader">
                         <span class="p-1.5 bg-sky-500/10 text-sky-500 rounded-lg">
@@ -159,12 +167,10 @@
 
                     <form id="entryForm" class="flex flex-col gap-3">
                         <input type="hidden" id="editItemId" value="">
-                        
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Description</label>
                             <input type="text" id="billName" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500 transition" placeholder="e.g., Netflix subscription" required>
                         </div>
-
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Event Type</label>
@@ -186,12 +192,7 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Dynamic Context Inputs Controlled by JS -->
-                        <div id="dynamicInputs" class="flex flex-col gap-3">
-                            <!-- Injected inputs based on selected frequency -->
-                        </div>
-
+                        <div id="dynamicInputs" class="flex flex-col gap-3"></div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Amount ($)</label>
@@ -202,19 +203,14 @@
                                 <input type="text" id="cardLastFour" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500 transition" placeholder="e.g., 4242" maxlength="4" pattern="\d*">
                             </div>
                         </div>
-
                         <div class="flex gap-2 mt-2">
-                            <button type="submit" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2.5 text-sm font-bold shadow-md shadow-indigo-600/15 transition duration-150" id="submitBtn">
-                                Save Entry
-                            </button>
-                            <button type="button" id="cancelEditBtn" class="hidden bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-lg px-4 text-sm font-bold transition duration-150">
-                                Cancel
-                            </button>
+                            <button type="submit" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2.5 text-sm font-bold shadow-md shadow-indigo-600/15 transition duration-150" id="submitBtn">Save Entry</button>
+                            <button type="button" id="cancelEditBtn" class="hidden bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-lg px-4 text-sm font-bold transition duration-150">Cancel</button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Directory Card -->
+                <!-- Directory -->
                 <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
                     <div class="flex items-center justify-between">
                         <h2 class="text-sm font-extrabold flex items-center gap-2">
@@ -223,113 +219,79 @@
                         </h2>
                         <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 font-bold" id="dirCount">0 Total</span>
                     </div>
-
-                    <input type="text" id="dirSearch" placeholder="🔍 Search scheduled items..." class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 transition">
-
-                    <div class="overflow-y-auto max-h-80 flex flex-col gap-1 pr-1" id="directoryList">
-                        <!-- Dynamic schedule items list loaded here -->
-                    </div>
+                    <input type="text" id="dirSearch" placeholder="🔍 Search schedules..." class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 transition">
+                    <div class="overflow-y-auto max-h-80 flex flex-col gap-1 pr-1" id="directoryList"></div>
                 </div>
             </section>
 
-            <!-- Center Panel (Interactive Calendar Grid & Responsive Viewports) -->
+            <!-- Calendar Panel -->
             <section id="paneCalendar" class="lg:col-span-8 flex flex-col gap-4">
                 <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
-                    <!-- Navigation / Mode Header -->
                     <div class="flex flex-col gap-3 md:flex-row md:items-center justify-between mb-4">
                         <div class="flex items-center justify-between md:justify-start gap-4">
-                            <!-- Month/Week/Day Switcher -->
                             <div class="bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl flex">
                                 <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 bg-white dark:bg-zinc-700 shadow-sm" data-mode="month" onclick="setCalendarMode('month')">Month</button>
-                                <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-all duration-150" data-mode="week" onclick="setCalendarMode('week')">Week</button>
-                                <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-all duration-150" data-mode="day" onclick="setCalendarMode('day')">Day</button>
+                                <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400" data-mode="week" onclick="setCalendarMode('week')">Week</button>
+                                <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400" data-mode="day" onclick="setCalendarMode('day')">Day</button>
                             </div>
                         </div>
-
-                        <!-- Date Navigation Nav -->
                         <div class="flex items-center justify-between md:justify-end gap-2 bg-slate-100 dark:bg-zinc-800/60 p-1 rounded-xl">
-                            <button onclick="navigateDate(-1)" class="p-2 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition text-slate-600 dark:text-zinc-300" aria-label="Previous">
+                            <button onclick="navigateDate(-1)" class="p-2 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition text-slate-600 dark:text-zinc-300">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                             </button>
-                            <button onclick="navigateToday()" class="px-3 py-1.5 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-bold rounded-lg text-slate-600 dark:text-zinc-300 transition">
-                                Today
-                            </button>
-                            <h3 class="text-sm font-extrabold px-2 min-w-36 text-center select-none" id="dateDisplayTitle">July 2026</h3>
-                            <button onclick="navigateDate(1)" class="p-2 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition text-slate-600 dark:text-zinc-300" aria-label="Next">
+                            <button onclick="navigateToday()" class="px-3 py-1.5 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-bold rounded-lg text-slate-600 dark:text-zinc-300 transition">Today</button>
+                            <h3 class="text-sm font-extrabold px-2 min-w-36 text-center select-none" id="dateDisplayTitle">...</h3>
+                            <button onclick="navigateDate(1)" class="p-2 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition text-slate-600 dark:text-zinc-300">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                         </div>
                     </div>
-
-                    <!-- Touch Gesture Capture Area -->
                     <div id="gestureSwipeArea" class="relative">
-                        <!-- Mode 1: Month Grid View -->
-                        <div id="viewMonth" class="block transition-all">
+                        <div id="viewMonth" class="block">
                             <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 dark:text-zinc-500 mb-2">
                                 <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
                             </div>
-                            <div id="monthGrid" class="grid grid-cols-7 gap-1.5">
-                                <!-- Calendar days injected dynamically -->
-                            </div>
+                            <div id="monthGrid" class="grid grid-cols-7 gap-1.5"></div>
                         </div>
-
-                        <!-- Mode 2: Week Grid View -->
-                        <div id="viewWeek" class="hidden transition-all">
+                        <div id="viewWeek" class="hidden">
                             <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 dark:text-zinc-500 mb-2">
                                 <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
                             </div>
-                            <div id="weekGrid" class="grid grid-cols-7 gap-2">
-                                <!-- Dynamic week row -->
-                            </div>
+                            <div id="weekGrid" class="grid grid-cols-7 gap-2"></div>
                         </div>
-
-                        <!-- Mode 3: Focused Day View -->
-                        <div id="viewDay" class="hidden transition-all py-4">
-                            <div class="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-5" id="dayViewContainer">
-                                <!-- Detailed agenda view layout -->
-                            </div>
+                        <div id="viewDay" class="hidden py-4">
+                            <div class="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-5" id="dayViewContainer"></div>
                         </div>
                     </div>
-
-                    <!-- Compact Legend Indicators -->
                     <div class="flex items-center flex-wrap gap-4 mt-4 pt-3 border-t border-slate-200 dark:border-zinc-800 text-xs">
-                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400">
-                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Bill Due
-                        </div>
-                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Statement Close
-                        </div>
-                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Payday/Income
-                        </div>
+                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Bill Due</div>
+                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Statement Close</div>
+                        <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Payday/Income</div>
                     </div>
                 </div>
             </section>
 
-            <!-- Bottom/Right Column: Backup Controls -->
+            <!-- Bottom Panel -->
             <section id="paneAnalytics" class="lg:col-span-12 hidden lg:block">
                 <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
                     <div class="flex items-center gap-3">
                         <span class="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl">
-                            <!-- Hard-drive database SVG -->
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4"></path></svg>
                         </span>
                         <div>
-                            <h3 class="font-extrabold text-sm">Backup, Portability & Sync</h3>
-                            <p class="text-xs text-slate-500 dark:text-zinc-400">Import or export your planner profile, or update your Home Screen cache manually.</p>
+                            <h3 class="font-extrabold text-sm">Portfolio Backup & Sync</h3>
+                            <p class="text-xs text-slate-500 dark:text-zinc-400">Export or import profile data to swap across devices or refresh the app cache.</p>
                         </div>
                     </div>
-
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <button onclick="checkForUpdates()" class="flex-grow md:flex-none border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 dark:text-zinc-300">
-                            <!-- Refresh Arrow Icon -->
-                            <svg class="w-4 h-4 animate-spin-hover" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 6H16"></path></svg> Update & Sync
-                        </button>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
                         <button onclick="exportData()" class="flex-grow md:flex-none border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Profile
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export
                         </button>
-                        <button onclick="triggerImport()" class="flex-grow md:flex-none bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-black rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Profile
+                        <button onclick="triggerImport()" class="flex-grow md:flex-none border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import
+                        </button>
+                        <button onclick="forceAppRefresh()" class="flex-grow md:flex-none bg-sky-600 hover:bg-sky-700 text-white rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/15">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Update & Sync
                         </button>
                         <input type="file" id="importInput" accept=".txt" class="hidden" onchange="importData(event)">
                     </div>
@@ -339,231 +301,115 @@
         </div>
     </main>
 
-    <!-- Mobile Navigation Tab Bar (Hidden on Desktop) -->
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 py-2.5 px-6 flex justify-around items-center z-40 shadow-xl shadow-black/10 transition-colors">
+    <!-- Mobile Navigation -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 py-2.5 px-6 flex justify-around items-center z-40 shadow-xl transition-colors">
         <button onclick="switchMobileTab('schedules')" id="navSchedulesBtn" class="flex flex-col items-center gap-1 text-sky-500 font-bold transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             <span class="text-[10px]">Schedules</span>
         </button>
-        <button onclick="switchMobileTab('calendar')" id="navCalendarBtn" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-950 dark:hover:text-zinc-50 transition">
+        <button onclick="switchMobileTab('calendar')" id="navCalendarBtn" class="flex flex-col items-center gap-1 text-slate-400 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             <span class="text-[10px]">Calendar</span>
         </button>
-        <button onclick="switchMobileTab('analytics')" id="navAnalyticsBtn" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-950 dark:hover:text-zinc-50 transition">
+        <button onclick="switchMobileTab('analytics')" id="navAnalyticsBtn" class="flex flex-col items-center gap-1 text-slate-400 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             <span class="text-[10px]">Portfolio</span>
         </button>
     </nav>
 
-    <!-- Global Interactive Day Detail Slide-up Popup / Modal -->
+    <!-- Day Modal -->
     <div id="dayModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
-        <div id="dayModalContent" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-3xl md:rounded-2xl max-w-lg w-full p-6 shadow-2xl transition-transform duration-200 transform translate-y-full md:translate-y-0 md:scale-95 flex flex-col gap-4 max-h-[85vh] md:max-h-[75vh]">
-            <!-- Header -->
+        <div id="dayModalContent" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-3xl md:rounded-2xl max-w-lg w-full p-6 shadow-2xl transition-transform duration-200 transform translate-y-full md:translate-y-0 md:scale-95 flex flex-col gap-4 max-h-[85vh]">
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Day View Schedule</h3>
-                    <h2 class="text-base font-black text-slate-900 dark:text-zinc-50" id="modalDayTitle">July 15, 2026</h2>
+                    <h2 class="text-base font-black text-slate-900 dark:text-zinc-50" id="modalDayTitle">...</h2>
                 </div>
-                <button onclick="closeDayModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-400 dark:text-zinc-500 transition" aria-label="Close">
+                <button onclick="closeDayModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-400 dark:text-zinc-500 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-
-            <!-- List Space -->
-            <div class="overflow-y-auto flex-grow flex flex-col gap-2.5" id="modalAgendaContainer">
-                <!-- Event list rows injected -->
-            </div>
-
-            <!-- Footer -->
-            <button onclick="closeDayModal()" class="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 py-3 text-center text-xs font-bold rounded-xl transition">
-                Close Agenda
-            </button>
+            <div class="overflow-y-auto flex-grow flex flex-col gap-2.5" id="modalAgendaContainer"></div>
+            <button onclick="closeDayModal()" class="bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 py-3 text-center text-xs font-bold rounded-xl transition mt-2">Close Agenda</button>
         </div>
     </div>
 
-
-    <!-- CORE APPLICATION ENGINES -->
+    <!-- Core JavaScript -->
     <script>
-        // Storage & Schema Initialization
-        let state = JSON.parse(localStorage.getItem('fin_tracker_portfolio')) || {
-            items: [],
-            completions: {} // Keys structured as: YYYY-MM-DD-ItemID : true/false
-        };
+        let state = JSON.parse(localStorage.getItem('fin_tracker_portfolio')) || { items: [], completions: {} };
+        let currentMode = "month";
+        let anchorDate = new Date(2026, 6, 19); 
+        let swipeStartX = 0; let swipeStartY = 0;
 
-        let currentMode = "month"; // month, week, day
-        let anchorDate = new Date(2026, 6, 19); // Default centered on July 19, 2026, matching today date
-        let swipeStartX = 0;
-        let swipeStartY = 0;
-
-        // Ensure current dynamic forms load
         window.addEventListener('load', () => {
             initAppTheme();
             toggleFrequencyFormControls();
             rebuildCardFilters();
             renderApp();
 
-            // Set Swipe Listeners for Gesture Nav
             const swipeZone = document.getElementById('gestureSwipeArea');
-            swipeZone.addEventListener('touchstart', (e) => {
-                swipeStartX = e.changedTouches[0].screenX;
-                swipeStartY = e.changedTouches[0].screenY;
-            }, { passive: true });
-
+            swipeZone.addEventListener('touchstart', (e) => { swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY; }, { passive: true });
             swipeZone.addEventListener('touchend', (e) => {
-                let diffX = e.changedTouches[0].screenX - swipeStartX;
-                let diffY = e.changedTouches[0].screenY - swipeStartY;
-                if (Math.abs(diffX) > 60 && Math.abs(diffY) < 40) {
-                    if (diffX > 0) {
-                        navigateDate(-1); // Swipe Right to Go Back
-                    } else {
-                        navigateDate(1); // Swipe Left to Go Forward
-                    }
-                }
+                let diffX = e.changedTouches[0].screenX - swipeStartX; let diffY = e.changedTouches[0].screenY - swipeStartY;
+                if (Math.abs(diffX) > 60 && Math.abs(diffY) < 40) navigateDate(diffX > 0 ? -1 : 1);
             }, { passive: true });
         });
 
-        // Theme Manager
         function initAppTheme() {
-            const stored = localStorage.getItem('theme');
-            if (stored === 'light') {
-                document.documentElement.classList.remove('dark');
-            } else {
-                document.documentElement.classList.add('dark');
-            }
+            if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+            else document.documentElement.classList.add('dark');
         }
 
         document.getElementById('themeToggleBtn').addEventListener('click', () => {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            showToast('🌓 Theme adjusted successfully!');
+            showToast('🌓 Theme updated.');
         });
 
-        // Event Type & Frequency UI bindings
         const frequencySelector = document.getElementById('frequency');
-        const billTypeSelector = document.getElementById('billType');
-
         frequencySelector.addEventListener('change', toggleFrequencyFormControls);
-        billTypeSelector.addEventListener('change', (e) => {
-            // Adjust visual headers based on event class (e.g. Income green, due dates rose)
-            const type = e.target.value;
-            const container = document.getElementById('formHeader');
-            if (type === 'income') {
-                container.firstElementChild.className = 'p-1.5 bg-emerald-500/10 text-emerald-500 rounded-lg';
-            } else if (type === 'due') {
-                container.firstElementChild.className = 'p-1.5 bg-rose-500/10 text-rose-500 rounded-lg';
-            } else {
-                container.firstElementChild.className = 'p-1.5 bg-amber-500/10 text-amber-500 rounded-lg';
-            }
-        });
 
         function toggleFrequencyFormControls() {
             const freq = frequencySelector.value;
             const container = document.getElementById('dynamicInputs');
             container.innerHTML = '';
 
-            if (freq === 'monthly') {
-                container.innerHTML = `
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Due Day of Month (1-31)</label>
-                        <input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="e.g., 15">
-                    </div>`;
-            } else if (freq === 'biweekly') {
-                container.innerHTML = `
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">First Payday / Anchor Date</label>
-                        <input type="date" id="anchorDateInput" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required value="2026-06-05">
-                    </div>`;
-            } else if (freq === 'semimonthly') {
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day 1 (1-31)</label>
-                            <input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="e.g., 1">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day 2 (1-31)</label>
-                            <input type="number" min="1" max="31" id="dueDay2" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="e.g., 15">
-                        </div>
-                    </div>`;
-            } else if (freq === '6month' || freq === 'yearly') {
-                const monthsOption = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-                    .map((m, idx) => `<option value="${idx}">${m}</option>`).join('');
-                
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Month Start/Due</label>
-                            <select id="dueMonth" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition">${monthsOption}</select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day of Month</label>
-                            <input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="15">
-                        </div>
-                    </div>`;
-            } else if (freq === 'once') {
-                container.innerHTML = `
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Event Date (One-Time)</label>
-                        <input type="date" id="onceDate" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required value="2026-07-19">
-                    </div>`;
-            }
+            if (freq === 'monthly') container.innerHTML = `<div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Due Day (1-31)</label><input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="e.g., 15"></div>`;
+            else if (freq === 'biweekly') container.innerHTML = `<div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">First Payday / Anchor Date</label><input type="date" id="anchorDateInput" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required value="2026-06-05"></div>`;
+            else if (freq === 'semimonthly') container.innerHTML = `<div class="grid grid-cols-2 gap-2"><div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day 1</label><input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="1"></div><div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day 2</label><input type="number" min="1" max="31" id="dueDay2" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="15"></div></div>`;
+            else if (freq === '6month' || freq === 'yearly') {
+                const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, idx) => `<option value="${idx}">${m}</option>`).join('');
+                container.innerHTML = `<div class="grid grid-cols-2 gap-2"><div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Month Start</label><select id="dueMonth" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition">${months}</select></div><div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Day</label><input type="number" min="1" max="31" id="dueDay" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required placeholder="15"></div></div>`;
+            } else if (freq === 'once') container.innerHTML = `<div><label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Event Date</label><input type="date" id="onceDate" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-sky-500 transition" required value="2026-07-19"></div>`;
         }
 
-        // Search engine filter on schedules directory
-        document.getElementById('dirSearch').addEventListener('input', () => {
-            renderListAndDirectory();
-        });
+        document.getElementById('dirSearch').addEventListener('input', renderListAndDirectory);
 
-        // Form Submit Lifecycle
         const entryForm = document.getElementById('entryForm');
         entryForm.addEventListener('submit', (e) => {
             e.preventDefault();
-
             const editId = document.getElementById('editItemId').value;
-            const nameVal = document.getElementById('billName').value.trim();
-            const typeVal = document.getElementById('billType').value;
             const freqVal = document.getElementById('frequency').value;
-            const amountVal = document.getElementById('billAmount').value;
-            const cardVal = document.getElementById('cardLastFour').value.trim();
-
             let payload = {
                 id: editId || Date.now().toString(),
-                name: nameVal,
-                type: typeVal,
+                name: document.getElementById('billName').value.trim(),
+                type: document.getElementById('billType').value,
                 frequency: freqVal,
-                amount: amountVal ? parseFloat(amountVal) : 0,
-                card: cardVal || ''
+                amount: parseFloat(document.getElementById('billAmount').value) || 0,
+                card: document.getElementById('cardLastFour').value.trim()
             };
 
-            // Map variables based on frequency selectors
-            if (freqVal === 'monthly') {
-                payload.dueDay = parseInt(document.getElementById('dueDay').value);
-            } else if (freqVal === 'biweekly') {
-                payload.anchorDate = document.getElementById('anchorDateInput').value; // String: YYYY-MM-DD
-            } else if (freqVal === 'semimonthly') {
-                payload.dueDay = parseInt(document.getElementById('dueDay').value);
-                payload.dueDay2 = parseInt(document.getElementById('dueDay2').value);
-            } else if (freqVal === '6month' || freqVal === 'yearly') {
-                payload.dueMonth = parseInt(document.getElementById('dueMonth').value);
-                payload.dueDay = parseInt(document.getElementById('dueDay').value);
-            } else if (freqVal === 'once') {
-                payload.onceDate = document.getElementById('onceDate').value; // String: YYYY-MM-DD
-            }
+            if (freqVal === 'monthly') payload.dueDay = parseInt(document.getElementById('dueDay').value);
+            else if (freqVal === 'biweekly') payload.anchorDate = document.getElementById('anchorDateInput').value;
+            else if (freqVal === 'semimonthly') { payload.dueDay = parseInt(document.getElementById('dueDay').value); payload.dueDay2 = parseInt(document.getElementById('dueDay2').value); }
+            else if (freqVal === '6month' || freqVal === 'yearly') { payload.dueMonth = parseInt(document.getElementById('dueMonth').value); payload.dueDay = parseInt(document.getElementById('dueDay').value); }
+            else if (freqVal === 'once') payload.onceDate = document.getElementById('onceDate').value;
 
-            if (editId) {
-                // Edit
-                state.items = state.items.map(item => item.id === editId ? payload : item);
-                showToast('✏️ Entry updated successfully!');
-            } else {
-                // Add
-                state.items.push(payload);
-                showToast('✅ Saved tracking entry successfully!');
-            }
+            if (editId) state.items = state.items.map(item => item.id === editId ? payload : item);
+            else state.items.push(payload);
 
-            saveState();
-            rebuildCardFilters();
-            resetForm();
-            renderApp();
+            saveState(); rebuildCardFilters(); resetForm(); renderApp();
+            showToast(editId ? '✏️ Entry updated.' : '✅ Entry saved.');
         });
 
         document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
@@ -580,853 +426,311 @@
         function populateFormForEdit(itemId) {
             const item = state.items.find(i => i.id === itemId);
             if (!item) return;
-
             document.getElementById('editItemId').value = item.id;
             document.getElementById('billName').value = item.name;
             document.getElementById('billType').value = item.type;
             document.getElementById('frequency').value = item.frequency;
-            document.getElementById('billAmount').value = item.amount ? item.amount : '';
+            document.getElementById('billAmount').value = item.amount || '';
             document.getElementById('cardLastFour').value = item.card;
-
             document.getElementById('formTitleText').innerText = 'Edit Schedule Item';
             document.getElementById('submitBtn').innerText = 'Update Entry';
             document.getElementById('cancelEditBtn').classList.remove('hidden');
-
             toggleFrequencyFormControls();
-
-            // Set subfields
-            if (item.frequency === 'monthly') {
-                document.getElementById('dueDay').value = item.dueDay;
-            } else if (item.frequency === 'biweekly') {
-                document.getElementById('anchorDateInput').value = item.anchorDate;
-            } else if (item.frequency === 'semimonthly') {
-                document.getElementById('dueDay').value = item.dueDay;
-                document.getElementById('dueDay2').value = item.dueDay2;
-            } else if (item.frequency === '6month' || item.frequency === 'yearly') {
-                document.getElementById('dueMonth').value = item.dueMonth;
-                document.getElementById('dueDay').value = item.dueDay;
-            } else if (item.frequency === 'once') {
-                document.getElementById('onceDate').value = item.onceDate;
-            }
-
-            // Scroll to form smoothly on mobile
-            switchMobileTab('schedules');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (item.frequency === 'monthly') document.getElementById('dueDay').value = item.dueDay;
+            else if (item.frequency === 'biweekly') document.getElementById('anchorDateInput').value = item.anchorDate;
+            else if (item.frequency === 'semimonthly') { document.getElementById('dueDay').value = item.dueDay; document.getElementById('dueDay2').value = item.dueDay2; }
+            else if (item.frequency === '6month' || item.frequency === 'yearly') { document.getElementById('dueMonth').value = item.dueMonth; document.getElementById('dueDay').value = item.dueDay; }
+            else if (item.frequency === 'once') document.getElementById('onceDate').value = item.onceDate;
+            switchMobileTab('schedules'); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function deleteItem(itemId) {
             state.items = state.items.filter(item => item.id !== itemId);
-            // Clean unneeded keys matching this item ID from completion maps
-            Object.keys(state.completions).forEach(key => {
-                if (key.endsWith(`-${itemId}`)) {
-                    delete state.completions[key];
-                }
-            });
-            saveState();
-            rebuildCardFilters();
-            renderApp();
-            showToast('🗑️ Entry removed successfully.');
+            Object.keys(state.completions).forEach(key => { if (key.endsWith(`-${itemId}`)) delete state.completions[key]; });
+            saveState(); rebuildCardFilters(); renderApp();
+            showToast('🗑️ Entry removed.');
         }
 
-        function saveState() {
-            localStorage.setItem('fin_tracker_portfolio', JSON.stringify(state));
-        }
+        function saveState() { localStorage.setItem('fin_tracker_portfolio', JSON.stringify(state)); }
+        document.getElementById('cardFilter').addEventListener('change', renderApp);
 
-        // Active filters selection listener
-        document.getElementById('cardFilter').addEventListener('change', () => {
-            renderApp();
-        });
-
-
-        // CALCULATOR ENGINE & VIEWPORT MATCHER
         function isItemDueOnDate(item, testDate) {
-            const year = testDate.getFullYear();
-            const month = testDate.getMonth();
-            const day = testDate.getDate();
-
-            if (item.frequency === 'monthly') {
-                return item.dueDay === day;
-            }
-
+            const year = testDate.getFullYear(); const month = testDate.getMonth(); const day = testDate.getDate();
+            if (item.frequency === 'monthly') return item.dueDay === day;
             if (item.frequency === 'once') {
                 if (!item.onceDate) return false;
                 const d = new Date(item.onceDate + "T00:00:00");
                 return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
             }
-
             if (item.frequency === 'biweekly') {
                 if (!item.anchorDate) return false;
                 const anchor = new Date(item.anchorDate + "T00:00:00");
-                
-                // Block instances scheduled before anchor date
                 const midnightTest = new Date(year, month, day, 0, 0, 0);
                 const midnightAnchor = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), 0, 0, 0);
                 if (midnightTest < midnightAnchor) return false;
-
-                const timeDiff = midnightTest.getTime() - midnightAnchor.getTime();
-                const dayDiff = Math.round(timeDiff / (1000 * 3600 * 24));
+                const dayDiff = Math.round((midnightTest - midnightAnchor) / (1000 * 3600 * 24));
                 return dayDiff % 14 === 0;
             }
-
-            if (item.frequency === 'semimonthly') {
-                return item.dueDay === day || item.dueDay2 === day;
-            }
-
-            if (item.frequency === 'yearly') {
-                return item.dueMonth === month && item.dueDay === day;
-            }
-
+            if (item.frequency === 'semimonthly') return item.dueDay === day || item.dueDay2 === day;
+            if (item.frequency === 'yearly') return item.dueMonth === month && item.dueDay === day;
             if (item.frequency === '6month') {
                 const diffMonths = (month - item.dueMonth + 12) % 12;
                 return (diffMonths === 0 || diffMonths === 6) && item.dueDay === day;
             }
-
             return false;
         }
 
-        // Fetch Date bounds for statistics depending on Viewport
         function getDateRangeOfViewport() {
-            if (currentMode === 'month') {
-                const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
-                const end = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0);
+            if (currentMode === 'month') return { start: new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1), end: new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0) };
+            else if (currentMode === 'week') {
+                const start = new Date(anchorDate); start.setDate(anchorDate.getDate() - anchorDate.getDay());
+                const end = new Date(start); end.setDate(start.getDate() + 6);
                 return { start, end };
-            } else if (currentMode === 'week') {
-                // Get the boundary of Sunday-to-Saturday containing anchorDate
-                const dayOfWeek = anchorDate.getDay();
-                const start = new Date(anchorDate);
-                start.setDate(anchorDate.getDate() - dayOfWeek);
-                const end = new Date(start);
-                end.setDate(start.getDate() + 6);
-                return { start, end };
-            } else {
-                return { start: new Date(anchorDate), end: new Date(anchorDate) };
             }
+            return { start: new Date(anchorDate), end: new Date(anchorDate) };
         }
 
-        // RE-CALCULATE AND RENDER DASHBOARD METRICS
         function renderStatistics() {
             const cardFilter = document.getElementById('cardFilter').value;
             const { start, end } = getDateRangeOfViewport();
+            let totalInc = 0, totalBills = 0, owed = 0;
+            const days = Math.round((end - start) / (1000 * 3600 * 24)) + 1;
 
-            let totalIncome = 0;
-            let totalBills = 0;
-            let stillOwed = 0;
-
-            const daysToLoop = Math.round((end - start) / (1000 * 3600 * 24)) + 1;
-
-            // Loop through each physical day within the selected window scope
-            for (let i = 0; i < daysToLoop; i++) {
-                const currentDay = new Date(start);
-                currentDay.setDate(start.getDate() + i);
-                
-                const dateKeyStr = getFormattedDateKeyStr(currentDay);
-
+            for (let i = 0; i < days; i++) {
+                const curDay = new Date(start); curDay.setDate(start.getDate() + i);
+                const dKey = getFormattedDateKeyStr(curDay);
                 state.items.forEach(item => {
-                    // Check Card filter guard
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
-
-                    if (isItemDueOnDate(item, currentDay)) {
-                        const isPaid = state.completions[`${dateKeyStr}-${item.id}`] === true;
-                        
-                        if (item.type === 'income') {
-                            totalIncome += item.amount;
-                        } else if (item.type === 'due') {
-                            totalBills += item.amount;
-                            if (!isPaid) {
-                                stillOwed += item.amount;
-                            }
-                        }
+                    if (isItemDueOnDate(item, curDay)) {
+                        if (item.type === 'income') totalInc += item.amount;
+                        else if (item.type === 'due') { totalBills += item.amount; if (!state.completions[`${dKey}-${item.id}`]) owed += item.amount; }
                     }
                 });
             }
 
-            // Push to DOM
-            document.getElementById('scopeIncome').innerText = formatCurrency(totalIncome);
+            document.getElementById('scopeIncome').innerText = formatCurrency(totalInc);
             document.getElementById('scopeBills').innerText = formatCurrency(totalBills);
-            document.getElementById('scopeOwed').innerText = formatCurrency(stillOwed);
-
-            const surplus = totalIncome - totalBills;
-            const netOwedLeft = totalIncome - stillOwed;
+            document.getElementById('scopeOwed').innerText = formatCurrency(owed);
+            const surplus = totalInc - totalBills;
             document.getElementById('scopeLeftover').innerText = formatCurrency(surplus);
 
-            // Budget Health evaluation
             const badge = document.getElementById('budgetStatusBadge');
-            const summaryText = document.getElementById('budgetSummaryText');
-            
-            if (totalIncome === 0 && totalBills === 0) {
+            const summary = document.getElementById('budgetSummaryText');
+            if (totalInc === 0 && totalBills === 0) {
                 badge.className = "px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400";
-                badge.innerText = "NO LOGS";
-                summaryText.innerText = "Register paycheck schedules to map surplus calculations.";
+                badge.innerText = "NO LOGS"; summary.innerText = "Map paycheck schedules to map calculations.";
             } else if (surplus >= 0) {
                 badge.className = "px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
-                badge.innerText = "COVERED";
-                summaryText.innerText = `Expenses met! Projected remaining cushion of ${formatCurrency(surplus)}.`;
+                badge.innerText = "COVERED"; summary.innerText = `Projected cushion of ${formatCurrency(surplus)}.`;
             } else {
                 badge.className = "px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400";
-                badge.innerText = "DEFICIT";
-                summaryText.innerText = `Warning: Scheduled bills exceed income by ${formatCurrency(Math.abs(surplus))}.`;
+                badge.innerText = "DEFICIT"; summary.innerText = `Warning: Scoped bills exceed income.`;
             }
-
-            // Filter context card header subtext
-            const filterLabel = cardFilter === 'all' ? "All cards and accounts" : `Card account (*${cardFilter})`;
-            const rangeStr = currentMode === 'month' ? "Active Month" : currentMode === 'week' ? "Active Week" : "Single Day View";
-            document.getElementById('filterStatus').innerText = `${filterLabel} • Scoped for ${rangeStr}`;
+            document.getElementById('filterStatus').innerText = `${cardFilter === 'all' ? "All cards" : `Card (*${cardFilter})`} • Scoped for ${currentMode === 'month' ? "Month" : currentMode === 'week' ? "Week" : "Day"}`;
         }
 
-
-        // DIRECTORY & LISTINGS ENGINE
         function renderListAndDirectory() {
             const listEl = document.getElementById('directoryList');
             listEl.innerHTML = '';
-
-            const items = state.items;
-            const searchVal = document.getElementById('dirSearch').value.toLowerCase().trim();
-
-            const filtered = items.filter(item => {
-                const searchMatch = item.name.toLowerCase().includes(searchVal) || (item.card && item.card.includes(searchVal));
-                return searchMatch;
-            });
-
+            const search = document.getElementById('dirSearch').value.toLowerCase().trim();
+            const filtered = state.items.filter(item => item.name.toLowerCase().includes(search) || (item.card && item.card.includes(search)));
             document.getElementById('dirCount').innerText = `${filtered.length} Total`;
 
-            if (filtered.length === 0) {
-                listEl.innerHTML = `
-                    <div class="text-center py-6 text-xs text-slate-400 dark:text-zinc-500">
-                        No schedules matches.
-                    </div>`;
-                return;
-            }
+            if (filtered.length === 0) { listEl.innerHTML = `<div class="text-center py-6 text-xs text-slate-400 dark:text-zinc-500">No matching schedules.</div>`; return; }
 
             filtered.forEach(item => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = "p-3 rounded-xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/50 dark:border-zinc-800/50 flex justify-between items-center text-xs";
-
-                let detailsText = "";
-                if (item.frequency === 'monthly') {
-                    detailsText = `Monthly • Day ${item.dueDay}`;
-                } else if (item.frequency === 'biweekly') {
-                    const d = new Date(item.anchorDate + "T00:00:00");
-                    detailsText = `Bi-weekly • From ${d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}`;
-                } else if (item.frequency === 'semimonthly') {
-                    detailsText = `Semi-monthly • Days ${item.dueDay} & ${item.dueDay2}`;
-                } else if (item.frequency === 'yearly') {
-                    const mName = getMonthName(item.dueMonth);
-                    detailsText = `Yearly • ${mName} ${item.dueDay}`;
-                } else if (item.frequency === '6month') {
-                    const m1 = getMonthName(item.dueMonth);
-                    const m2 = getMonthName((item.dueMonth + 6) % 12);
-                    detailsText = `6-Month • ${m1} & ${m2} (${item.dueDay})`;
-                } else if (item.frequency === 'once') {
-                    const d = new Date(item.onceDate + "T00:00:00");
-                    detailsText = `One-time • ${d.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}`;
-                }
-
-                const indicatorColor = item.type === 'due' ? 'bg-rose-500' : item.type === 'income' ? 'bg-emerald-500' : 'bg-amber-500';
-                const cardLabel = item.card ? `<span class="bg-slate-200 dark:bg-zinc-800 text-[9px] px-1.5 py-0.5 rounded text-slate-500 font-bold ml-1">💳 *${item.card}</span>` : '';
-
-                itemDiv.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full ${indicatorColor} shrink-0"></span>
-                        <div>
-                            <div class="font-extrabold flex items-center flex-wrap gap-1 text-slate-800 dark:text-zinc-200">
-                                ${item.name} ${cardLabel}
-                            </div>
-                            <div class="text-[9px] text-slate-400 font-medium mt-0.5">${detailsText}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="font-black pr-2 text-slate-700 dark:text-zinc-300">${item.amount ? formatCurrency(item.amount) : 'Variable'}</span>
-                        <button onclick="populateFormForEdit('${item.id}')" class="p-1 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded text-slate-400 dark:text-zinc-400 hover:text-sky-500" title="Edit">
-                            <!-- pencil icon -->
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </button>
-                        <button onclick="deleteItem('${item.id}')" class="p-1 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded text-slate-400 dark:text-zinc-400 hover:text-rose-500" title="Delete">
-                            <!-- trash icon -->
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>`;
-
+                let detailsText = item.frequency;
+                if (item.frequency === 'monthly') detailsText = `Monthly • Day ${item.dueDay}`;
+                else if (item.frequency === 'biweekly') { const d = new Date(item.anchorDate + "T00:00:00"); detailsText = `Bi-weekly • From ${getMonthName(d.getMonth()).substring(0,3)} ${d.getDate()}`; }
+                else if (item.frequency === 'semimonthly') detailsText = `Semi-monthly • Days ${item.dueDay} & ${item.dueDay2}`;
+                else if (item.frequency === 'yearly') detailsText = `Yearly • ${getMonthName(item.dueMonth).substring(0,3)} ${item.dueDay}`;
+                else if (item.frequency === '6month') detailsText = `6-Month • ${getMonthName(item.dueMonth).substring(0,3)} (${item.dueDay})`;
+                else if (item.frequency === 'once') { const d = new Date(item.onceDate + "T00:00:00"); detailsText = `One-time • ${getMonthName(d.getMonth()).substring(0,3)} ${d.getDate()}, ${d.getFullYear()}`; }
+                
+                const typeColor = item.type === 'due' ? 'bg-rose-500' : item.type === 'income' ? 'bg-emerald-500' : 'bg-amber-500';
+                itemDiv.innerHTML = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full ${typeColor} shrink-0"></span><div><div class="font-extrabold flex items-center flex-wrap gap-1 text-slate-800 dark:text-zinc-200">${item.name}${item.card ? `<span class="bg-slate-200 dark:bg-zinc-800 text-[9px] px-1.5 py-0.5 rounded text-slate-500 font-bold ml-1">💳 *${item.card}</span>` : ''}</div><div class="text-[9px] text-slate-400 font-medium mt-0.5 capitalize">${detailsText}</div></div></div><div class="flex items-center gap-1"><span class="font-black pr-2 text-slate-700 dark:text-zinc-300">${formatCurrency(item.amount)}</span><button onclick="populateFormForEdit('${item.id}')" class="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded text-slate-400 dark:text-zinc-400 hover:text-sky-500"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button><button onclick="deleteItem('${item.id}')" class="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded text-slate-400 dark:text-zinc-400 hover:text-rose-500"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>`;
                 listEl.appendChild(itemDiv);
             });
         }
 
-
-        // MULTI-VIEWPORT RENDERING MECHANISM (MONTH, WEEK, DAY)
         function setCalendarMode(mode) {
             currentMode = mode;
-            // Update mode selection button states
-            document.querySelectorAll('[data-mode]').forEach(btn => {
-                if (btn.getAttribute('data-mode') === mode) {
-                    btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 bg-white dark:bg-zinc-700 shadow-sm";
-                } else {
-                    btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-all duration-150";
-                }
-            });
-
-            // Adjust viewport display containers
+            document.querySelectorAll('[data-mode]').forEach(btn => btn.className = (btn.getAttribute('data-mode') === mode ? "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 bg-white dark:bg-zinc-700 shadow-sm" : "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 dark:text-zinc-400"));
             document.getElementById('viewMonth').className = mode === 'month' ? 'block' : 'hidden';
             document.getElementById('viewWeek').className = mode === 'week' ? 'block' : 'hidden';
             document.getElementById('viewDay').className = mode === 'day' ? 'block' : 'hidden';
-
             renderApp();
         }
 
-        function navigateToday() {
-            anchorDate = new Date(); // Centered today
+        function navigateToday() { anchorDate = new Date(); renderApp(); }
+        function navigateDate(dir) {
+            if (currentMode === 'month') anchorDate.setMonth(anchorDate.getMonth() + dir);
+            else if (currentMode === 'week') anchorDate.setDate(anchorDate.getDate() + (dir * 7));
+            else anchorDate.setDate(anchorDate.getDate() + dir);
             renderApp();
         }
 
-        function navigateDate(direction) {
-            if (currentMode === 'month') {
-                anchorDate.setMonth(anchorDate.getMonth() + direction);
-            } else if (currentMode === 'week') {
-                anchorDate.setDate(anchorDate.getDate() + (direction * 7));
-            } else {
-                anchorDate.setDate(anchorDate.getDate() + direction);
-            }
-            renderApp();
-        }
-
-        // Render Master Call
         function renderApp() {
             const cardFilter = document.getElementById('cardFilter').value;
-            const year = anchorDate.getFullYear();
-            const month = anchorDate.getMonth();
-
-            // Set dynamic header text depending on mode
             if (currentMode === 'month') {
-                document.getElementById('dateDisplayTitle').innerText = `${getMonthName(month)} ${year}`;
-                renderMonthView(year, month, cardFilter);
+                document.getElementById('dateDisplayTitle').innerText = `${getMonthName(anchorDate.getMonth())} ${anchorDate.getFullYear()}`;
+                renderMonthView(anchorDate.getFullYear(), anchorDate.getMonth(), cardFilter);
             } else if (currentMode === 'week') {
-                const startRange = new Date(anchorDate);
-                startRange.setDate(anchorDate.getDate() - anchorDate.getDay());
-                const endRange = new Date(startRange);
-                endRange.setDate(startRange.getDate() + 6);
-                const formatterStr = { month: 'short', day: 'numeric' };
-                document.getElementById('dateDisplayTitle').innerText = `${startRange.toLocaleDateString('en', formatterStr)} - ${endRange.toLocaleDateString('en', formatterStr)}`;
-                renderWeekView(startRange, cardFilter);
+                const s = new Date(anchorDate); s.setDate(anchorDate.getDate() - anchorDate.getDay());
+                const e = new Date(s); e.setDate(s.getDate() + 6);
+                document.getElementById('dateDisplayTitle').innerText = `${s.toLocaleDateString('en',{month:'short',day:'numeric'})} - ${e.toLocaleDateString('en',{month:'short',day:'numeric'})}`;
+                renderWeekView(s, cardFilter);
             } else {
                 document.getElementById('dateDisplayTitle').innerText = anchorDate.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
                 renderDayView(anchorDate, cardFilter);
             }
-
-            renderStatistics();
-            renderListAndDirectory();
+            renderStatistics(); renderListAndDirectory();
         }
 
-        // View 1: Month Grid Render (Standard Calendar)
         function renderMonthView(year, month, cardFilter) {
-            const grid = document.getElementById('monthGrid');
-            grid.innerHTML = '';
-
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('monthGrid'); grid.innerHTML = '';
+            const first = new Date(year, month, 1).getDay();
+            const total = new Date(year, month + 1, 0).getDate();
             const today = new Date();
 
-            // Fill empty spacer cells
-            for (let i = 0; i < firstDayIndex; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = "bg-slate-100/50 dark:bg-zinc-900/30 rounded-xl min-h-[50px] md:min-h-[85px]";
-                grid.appendChild(emptyCell);
-            }
-
-            // Render calendar day cells
-            for (let dNum = 1; dNum <= totalDays; dNum++) {
-                const cellDate = new Date(year, month, dNum);
-                const dateKeyStr = getFormattedDateKeyStr(cellDate);
-                const isToday = dNum === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-
-                const cell = document.createElement('div');
-                cell.className = `p-1 md:p-2 bg-slate-100 dark:bg-zinc-900/60 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl min-h-[55px] md:min-h-[85px] cursor-pointer flex flex-col justify-between transition border ${
-                    isToday ? 'border-sky-500 shadow-sm shadow-sky-500/10' : 'border-transparent'
-                }`;
-
-                // On-click event displays detail modal pop-up
-                cell.setAttribute('onclick', `openDayModal('${cellDate.toISOString()}')`);
-
-                let indicatorsHtml = "";
-                let hasDue = false, hasStmt = false, hasInc = false;
-
+            for (let i = 0; i < first; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: "bg-slate-100/50 dark:bg-zinc-900/30 rounded-xl min-h-[50px] md:min-h-[85px]" }));
+            for (let d = 1; d <= total; d++) {
+                const cur = new Date(year, month, d); const todayKey = getFormattedDateKeyStr(cur);
+                const isT = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                const cell = Object.assign(document.createElement('div'), { className: `p-1 md:p-2 bg-slate-100 dark:bg-zinc-900/60 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl min-h-[55px] md:min-h-[85px] cursor-pointer transition border ${isT ? 'border-sky-500' : 'border-transparent'}` });
+                cell.setAttribute('onclick', `openDayModal('${cur.toISOString()}')`);
+                let inc = 0, due = 0, stm = 0, incTxt = '', dueTxt = '';
                 state.items.forEach(item => {
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
-
-                    if (isItemDueOnDate(item, cellDate)) {
-                        const isPaid = state.completions[`${dateKeyStr}-${item.id}`] === true;
-                        
-                        // Indicators styles
-                        if (item.type === 'income') {
-                            hasInc = true;
-                            indicatorsHtml += `
-                                <div class="hidden md:flex items-center gap-1 text-[9px] px-1 py-0.5 rounded font-black ${
-                                    isPaid ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 line-through opacity-50' : 'bg-emerald-500 text-white'
-                                } truncate">
-                                    <span>💵</span><span class="truncate">${item.name}</span>
-                                </div>`;
-                        } else if (item.type === 'due') {
-                            hasDue = true;
-                            indicatorsHtml += `
-                                <div class="hidden md:flex items-center gap-1 text-[9px] px-1 py-0.5 rounded font-black ${
-                                    isPaid ? 'bg-rose-500/20 text-rose-500 dark:text-rose-400 line-through opacity-50' : 'bg-rose-500 text-white'
-                                } truncate">
-                                    <span>💸</span><span class="truncate">${item.name}</span>
-                                </div>`;
-                        } else {
-                            hasStmt = true;                            indicatorsHtml += `
-                                <div class="hidden md:flex items-center gap-1 text-[9px] px-1 py-0.5 rounded bg-amber-500 text-white font-black truncate">
-                                    <span>💳</span><span class="truncate">${item.name}</span>
-                                </div>`;
-                        }
+                    if (isItemDueOnDate(item, cur)) {
+                        if (item.type === 'income') { inc = 1; incTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${state.completions[`${todayKey}-${item.id}`]?'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 line-through opacity-50':'bg-emerald-500 text-white'} truncate">💵 ${item.name}</div>`; }
+                        else if (item.type === 'due') { due = 1; dueTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${state.completions[`${todayKey}-${item.id}`]?'bg-rose-500/20 text-rose-500 dark:text-rose-400 line-through opacity-50':'bg-rose-500 text-white'} truncate">💸 ${item.name}</div>`; }
+                        else stm = 1;
                     }
                 });
-
-                // Mobile-friendly dots indicator markup
-                const dotIndicators = `
-                    <div class="flex gap-1 md:hidden mt-1 justify-center w-full">
-                        ${hasInc ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>' : ''}
-                        ${hasDue ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>' : ''}
-                        ${hasStmt ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>' : ''}
-                    </div>`;
-
-                cell.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-extrabold ${isToday ? 'text-sky-500' : 'text-slate-700 dark:text-zinc-300'}">${dNum}</span>
-                    </div>
-                    <div class="flex-grow flex flex-col justify-end gap-1 overflow-hidden mt-1">
-                        ${indicatorsHtml}
-                        ${dotIndicators}
-                    </div>`;
-
+                cell.innerHTML = `<div class="flex justify-between items-center"><span class="text-xs font-extrabold ${isT ? 'text-sky-500' : 'text-slate-700 dark:text-zinc-300'}">${d}</span></div><div class="flex-grow flex flex-col justify-end gap-0.5 overflow-hidden mt-1">${dueTxt}${incTxt}<div class="flex md:hidden gap-1 mt-0.5 justify-center w-full">${inc?'<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>':''}${due?'<span class="w-1.5 h-1.5 rounded-full bg-rose-500 calendar-dot"></span>':''}${stm?'<span class="w-1.5 h-1.5 rounded-full bg-amber-500 calendar-dot"></span>':''}</div></div>`;
                 grid.appendChild(cell);
             }
         }
 
-        // View 2: Week Grid Render
-        function renderWeekView(startRange, cardFilter) {
-            const grid = document.getElementById('weekGrid');
-            grid.innerHTML = '';
-
-            const today = new Date();
-
+        function renderWeekView(start, cardFilter) {
+            const grid = document.getElementById('weekGrid'); grid.innerHTML = '';
             for (let i = 0; i < 7; i++) {
-                const cellDate = new Date(startRange);
-                cellDate.setDate(startRange.getDate() + i);
-                
-                const dateKeyStr = getFormattedDateKeyStr(cellDate);
-                const isToday = cellDate.getDate() === today.getDate() && cellDate.getMonth() === today.getMonth() && cellDate.getFullYear() === today.getFullYear();
-
-                const cell = document.createElement('div');
-                cell.className = `p-2 bg-slate-100 dark:bg-zinc-900/60 rounded-xl min-h-[160px] cursor-pointer flex flex-col justify-between transition border ${
-                    isToday ? 'border-sky-500 shadow-sm' : 'border-transparent'
-                }`;
-
-                cell.setAttribute('onclick', `openDayModal('${cellDate.toISOString()}')`);
-
-                let listHtml = "";
-                let hasEvents = false;
-
+                const cur = new Date(start); cur.setDate(start.getDate() + i); const todayKey = getFormattedDateKeyStr(cur);
+                const isT = getFormattedDateKeyStr(cur) === getFormattedDateKeyStr(new Date());
+                const cell = Object.assign(document.createElement('div'), { className: `p-2 bg-slate-100 dark:bg-zinc-900/60 rounded-xl min-h-[160px] cursor-pointer transition border ${isT ? 'border-sky-500' : 'border-transparent'}` });
+                cell.setAttribute('onclick', `openDayModal('${cur.toISOString()}')`);
+                let list = '';
                 state.items.forEach(item => {
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
-
-                    if (isItemDueOnDate(item, cellDate)) {
-                        hasEvents = true;
-                        const isPaid = state.completions[`${dateKeyStr}-${item.id}`] === true;
-                        
-                        const colorClass = item.type === 'due' ? (isPaid ? 'bg-rose-500/20 text-rose-500 line-through' : 'bg-rose-500 text-white')
-                                          : item.type === 'income' ? (isPaid ? 'bg-emerald-500/20 text-emerald-500 line-through' : 'bg-emerald-500 text-white')
-                                          : 'bg-amber-500 text-white';
-
-                        listHtml += `
-                            <div class="text-[9px] px-1.5 py-0.5 rounded font-extrabold ${colorClass} truncate w-full mb-1">
-                                ${item.name}
-                            </div>`;
+                    if (isItemDueOnDate(item, cur)) {
+                        const paid = state.completions[`${todayKey}-${item.id}`];
+                        const typeCls = item.type==='due'?(paid?'bg-rose-500/20 text-rose-500 line-through opacity-50':'bg-rose-500 text-white'):item.type==='income'?(paid?'bg-emerald-500/20 text-emerald-500 line-through opacity-50':'bg-emerald-500 text-white'):'bg-amber-500 text-white';
+                        list += `<div class="text-[9px] px-1.5 py-0.5 rounded font-extrabold ${typeCls} truncate w-full mb-1">${item.name}</div>`;
                     }
                 });
-
-                cell.innerHTML = `
-                    <div class="text-center pb-2 border-b border-slate-200 dark:border-zinc-800">
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase">${cellDate.toLocaleDateString('en', {weekday: 'short'})}</span>
-                        <span class="text-xs font-black ${isToday ? 'text-sky-500' : 'text-slate-800 dark:text-zinc-200'}">${cellDate.getDate()}</span>
-                    </div>
-                    <div class="flex-grow flex flex-col justify-start items-center gap-1 overflow-y-auto pt-2">
-                        ${hasEvents ? listHtml : '<span class="text-[9px] text-slate-400 dark:text-zinc-500 py-4">No events</span>'}
-                    </div>`;
-
+                cell.innerHTML = `<div class="text-center pb-2 border-b border-slate-200 dark:border-zinc-800"><span class="block text-[10px] font-bold text-slate-400 uppercase">${cur.toLocaleDateString('en',{weekday:'short'})}</span><span class="text-xs font-black ${isT ? 'text-sky-500' : 'text-slate-800 dark:text-zinc-200'}">${cur.getDate()}</span></div><div class="flex-grow pt-2 overflow-y-auto">${list || '<span class="text-[9px] text-slate-400 py-4 block text-center">Empty</span>'}</div>`;
                 grid.appendChild(cell);
             }
         }
 
-        // View 3: Focus Day View Container Render
-        function renderDayView(testDate, cardFilter) {
-            const container = document.getElementById('dayViewContainer');
-            const dateKeyStr = getFormattedDateKeyStr(testDate);
-            container.innerHTML = '';
-
-            let agendaRows = [];
-
-            state.items.forEach(item => {
-                if (cardFilter !== 'all' && item.card !== cardFilter) return;
-
-                if (isItemDueOnDate(item, testDate)) {
-                    agendaRows.push(item);
-                }
-            });
-
-            if (agendaRows.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 flex flex-col items-center justify-center gap-2">
-                        <span class="text-3xl">☕</span>
-                        <h4 class="font-bold text-sm">Clear Horizon</h4>
-                        <p class="text-xs text-slate-400 dark:text-zinc-500">There are no bills or income scheduled for this date.</p>
-                    </div>`;
-                return;
-            }
-
-            const headerWrapper = document.createElement('div');
-            headerWrapper.className = "flex justify-between items-center border-b border-slate-200 dark:border-zinc-800 pb-3 mb-4";
-            headerWrapper.innerHTML = `
-                <div class="font-extrabold text-sm text-slate-700 dark:text-zinc-300">Agenda Items</div>
-                <div class="text-xs text-slate-400 font-bold">${agendaRows.length} Scheduled</div>`;
-            container.appendChild(headerWrapper);
-
-            const listWrapper = document.createElement('div');
-            listWrapper.className = "flex flex-col gap-2.5";
-
-            agendaRows.forEach(item => {
-                const isPaid = state.completions[`${dateKeyStr}-${item.id}`] === true;
-                const row = createAgendaRowHTML(item, testDate, isPaid, dateKeyStr);
-                listWrapper.appendChild(row);
-            });
-
-            container.appendChild(listWrapper);
+        function renderDayView(test, cardFilter) {
+            const cont = document.getElementById('dayViewContainer'); const dKey = getFormattedDateKeyStr(test); cont.innerHTML = '';
+            let rows = state.items.filter(item => (cardFilter==='all'||item.card===cardFilter) && isItemDueOnDate(item,test));
+            if (!rows.length) { cont.innerHTML = `<div class="text-center py-12 flex flex-col items-center gap-2">☕ <h4 class="font-bold text-sm">Clear Horizon</h4><p class="text-xs text-slate-400">No scheduled events.</p></div>`; return; }
+            cont.innerHTML = `<div class="flex justify-between items-center border-b border-slate-200 dark:border-zinc-800 pb-3 mb-4"><div class="font-extrabold text-sm text-slate-700 dark:text-zinc-300">Agenda</div><div class="text-xs text-slate-400 font-bold">${rows.length} Events</div></div>`;
+            const listW = Object.assign(document.createElement('div'), { className: "flex flex-col gap-2.5" });
+            rows.forEach(item => listW.appendChild(createAgendaRowHTML(item, test, state.completions[`${dKey}-${item.id}`], dKey, false)));
+            cont.appendChild(listW);
         }
 
-
-        // DAY VIEW & DETAIL POP-UP MODAL EVENTS
-        function openDayModal(dateIsoStr) {
-            const targetDate = dateIsoStr ? new Date(dateIsoStr) : anchorDate;
-            const formattedTitleStr = targetDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-            
-            document.getElementById('modalDayTitle').innerText = formattedTitleStr;
-            
-            const listContainer = document.getElementById('modalAgendaContainer');
-            listContainer.innerHTML = '';
-
-            const dateKeyStr = getFormattedDateKeyStr(targetDate);
-            let dayEvents = [];
-
-            const cardFilter = document.getElementById('cardFilter').value;
-
-            state.items.forEach(item => {
-                if (cardFilter !== 'all' && item.card !== cardFilter) return;
-                if (isItemDueOnDate(item, targetDate)) {
-                    dayEvents.push(item);
-                }
-            });
-
-            if (dayEvents.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="text-center py-10 text-slate-400 dark:text-zinc-500 flex flex-col items-center gap-2">
-                        <span class="text-3xl">🌿</span>
-                        <p class="text-xs font-bold">No bills or income scheduled for this date.</p>
-                    </div>`;
-            } else {
-                dayEvents.forEach(item => {
-                    const isPaid = state.completions[`${dateKeyStr}-${item.id}`] === true;
-                    const row = createAgendaRowHTML(item, targetDate, isPaid, dateKeyStr, true);
-                    listContainer.appendChild(row);
-                });
-            }
-
-            // Slide Up Modal & disable body scrolls
+        function openDayModal(iso) {
+            const target = iso ? new Date(iso) : anchorDate; const dKey = getFormattedDateKeyStr(target);
+            document.getElementById('modalDayTitle').innerText = target.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const listC = document.getElementById('modalAgendaContainer'); listC.innerHTML = '';
+            let events = state.items.filter(item => (document.getElementById('cardFilter').value==='all'||item.card===document.getElementById('cardFilter').value) && isItemDueOnDate(item,target));
+            if (!events.length) listC.innerHTML = `<div class="text-center py-10 text-slate-400 flex flex-col items-center gap-2">🌿 <p class="text-xs font-bold">Nothing scheduled.</p></div>`;
+            else events.forEach(item => listC.appendChild(createAgendaRowHTML(item, target, state.completions[`${dKey}-${item.id}`], dKey, true)));
             document.body.classList.add('modal-active');
-            const modal = document.getElementById('dayModal');
-            const content = document.getElementById('dayModalContent');
-            
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            content.classList.remove('translate-y-full', 'scale-95');
+            const mod = document.getElementById('dayModal'); mod.classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('dayModalContent').classList.remove('translate-y-full', 'scale-95');
         }
 
         function closeDayModal() {
             document.body.classList.remove('modal-active');
-            const modal = document.getElementById('dayModal');
-            const content = document.getElementById('dayModalContent');
-            
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            content.classList.add('translate-y-full');
-            if (window.innerWidth >= 768) {
-                content.classList.add('scale-95');
-            }
+            const mod = document.getElementById('dayModal'); mod.classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('dayModalContent').classList.add('translate-y-full', 'scale-95');
         }
 
-        // Shared Agenda Row Component Factory
-        function createAgendaRowHTML(item, testDate, isPaid, dateKeyStr, isInModal = false) {
-            const row = document.createElement('div');
-            row.className = `p-3.5 rounded-xl border flex items-center justify-between transition ${
-                isPaid 
-                ? 'bg-slate-100/50 dark:bg-zinc-950/20 border-slate-200/50 dark:border-zinc-900 opacity-60' 
-                : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800'
-            }`;
-
-            const badgeColor = item.type === 'due' ? 'bg-rose-500' : item.type === 'income' ? 'bg-emerald-500' : 'bg-amber-500';
-            const actionIcon = item.type === 'income' ? '💵' : '💸';
-            const cardInfo = item.card ? `<span class="bg-slate-100 dark:bg-zinc-800 text-[9px] px-1.5 py-0.5 rounded font-black text-slate-500">💳 *${item.card}</span>` : '';
-
-            row.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <!-- Checkbox handler -->
-                    <button onclick="togglePaidOccurrence('${dateKeyStr}', '${item.id}', ${isInModal})" class="w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-zinc-700 flex items-center justify-center hover:scale-105 active:scale-95 transition ${
-                        isPaid ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-transparent text-transparent'
-                    }">
-                        <!-- checkmark -->
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                    </button>
-
-                    <div>
-                        <div class="font-extrabold text-xs flex items-center flex-wrap gap-1 text-slate-900 dark:text-zinc-100 ${isPaid ? 'line-through text-slate-400 dark:text-zinc-500' : ''}">
-                            <span>${actionIcon}</span>
-                            ${item.name}
-                            ${cardInfo}
-                        </div>
-                        <div class="text-[9px] text-slate-400 font-bold mt-0.5 capitalize">${item.frequency} frequency</div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-black text-slate-800 dark:text-zinc-200 ${isPaid ? 'line-through text-slate-400 dark:text-zinc-500' : ''}">
-                        ${item.amount ? formatCurrency(item.amount) : 'Variable'}
-                    </span>
-                    <button onclick="editFromAgenda('${item.id}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg text-slate-400 dark:text-zinc-400 hover:text-sky-500" title="Edit">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                    </button>
-                </div>`;
-            
+        function createAgendaRowHTML(item, date, paid, dKey, inM) {
+            const row = Object.assign(document.createElement('div'), { className: `p-3.5 rounded-xl border flex items-center justify-between transition ${paid ? 'bg-slate-100/50 dark:bg-zinc-950/20 border-slate-200/50 dark:border-zinc-900 opacity-60' : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800'}` });
+            row.innerHTML = `<div class="flex items-center gap-3"><button onclick="togglePaidOccurrence('${dKey}', '${item.id}', ${inM})" class="w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-zinc-700 flex items-center justify-center hover:scale-105 transition ${paid ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-transparent text-transparent'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button><div><div class="font-extrabold text-xs flex items-center flex-wrap gap-1 text-slate-900 dark:text-zinc-100 ${paid ? 'line-through text-slate-400' : ''}">${item.type==='income'?'💵':item.type==='due'?'💸':'💳'} ${item.name}${item.card ? `<span class="bg-slate-100 dark:bg-zinc-800 text-[9px] px-1.5 py-0.5 rounded font-black text-slate-500">💳 *${item.card}</span>` : ''}</div><div class="text-[9px] text-slate-400 font-bold mt-0.5 capitalize">${item.frequency}</div></div></div><div class="flex items-center gap-3"><span class="text-xs font-black text-slate-800 dark:text-zinc-200 ${paid ? 'line-through text-slate-400' : ''}">${formatCurrency(item.amount)}</span><button onclick="editFromAgenda('${item.id}')" class="p-1.5 bg-slate-100 dark:bg-zinc-800 rounded-lg text-slate-400 hover:text-sky-500"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button></div>`;
             return row;
         }
 
-        // Action routing helper from popup agenda straight to editor
-        function editFromAgenda(itemId) {
-            closeDayModal();
-            populateFormForEdit(itemId);
+        function editFromAgenda(id) { closeDayModal(); populateFormForEdit(id); }
+        function togglePaidOccurrence(dKey, id, refM) {
+            const key = `${dKey}-${id}`; if (state.completions[key]) delete state.completions[key]; else state.completions[key] = true;
+            saveState(); renderApp(); if (refM) { const p = dKey.split('-'); openDayModal(new Date(p[0],p[1]-1,p[2]).toISOString()); }
+            showToast('💾 Status updated.');
         }
 
-        function togglePaidOccurrence(dateKeyStr, itemId, refreshModal = false) {
-            const key = `${dateKeyStr}-${itemId}`;
-            if (state.completions[key] === true) {
-                delete state.completions[key];
-            } else {
-                state.completions[key] = true;
-            }
-            saveState();
-            renderApp();
-            
-            if (refreshModal) {
-                // Reconstruct dates based on string index key
-                const dateParts = dateKeyStr.split('-');
-                const reDate = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
-                openDayModal(reDate.toISOString());
-            }
-            showToast('💾 Completion status updated!');
-        }
-
-
-        // MULTI-CARD OPTION POPULATION UTILS
         function rebuildCardFilters() {
-            const select = document.getElementById('cardFilter');
-            const savedSelectedValue = select.value;
-
-            select.innerHTML = '<option value="all">💳 All Cards / Accounts</option>';
-            
-            // Collect unique account tags from schedules
-            const cards = [...new Set(state.items.map(item => item.card).filter(c => c && c.length > 0))];
-            
-            cards.forEach(card => {
-                const opt = document.createElement('option');
-                opt.value = card;
-                opt.innerText = `💳 Card: *${card}`;
-                select.appendChild(opt);
-            });
-
-            // Maintain previously selected filter
-            if (cards.includes(savedSelectedValue)) {
-                select.value = savedSelectedValue;
-            } else {
-                select.value = 'all';
-            }
+            const sel = document.getElementById('cardFilter'); const saved = sel.value;
+            sel.innerHTML = '<option value="all">💳 All Cards / Accounts</option>';
+            [...new Set(state.items.map(i => i.card).filter(Boolean))].forEach(card => sel.appendChild(Object.assign(document.createElement('option'), { value: card, text: `💳 Card: *${card}` })));
+            sel.value = state.items.map(i=>i.card).includes(saved) ? saved : 'all';
         }
 
-
-        // MOBILE NAVIGATION SWITCHER (Tab controller)
-        function switchMobileTab(targetTab) {
-            const pSchedules = document.getElementById('paneSchedules');
-            const pCalendar = document.getElementById('paneCalendar');
-            const pAnalytics = document.getElementById('paneAnalytics');
-
-            const btnSched = document.getElementById('navSchedulesBtn');
-            const btnCal = document.getElementById('navCalendarBtn');
-            const btnAnal = document.getElementById('navAnalyticsBtn');
-
-            // Hide/Show viewport panes
-            pSchedules.className = targetTab === 'schedules' ? 'lg:col-span-4 flex flex-col gap-5 block' : 'lg:col-span-4 flex flex-col gap-5 hidden lg:flex';
-            pCalendar.className = targetTab === 'calendar' ? 'lg:col-span-8 flex flex-col gap-4 block' : 'lg:col-span-8 flex flex-col gap-4 hidden lg:block';
-            pAnalytics.className = targetTab === 'analytics' ? 'lg:col-span-12 block' : 'lg:col-span-12 hidden lg:block';
-
-            // Tab bar button highlight states
-            btnSched.className = targetTab === 'schedules' ? 'flex flex-col items-center gap-1 text-sky-500 font-bold transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-950 dark:hover:text-zinc-50 transition';
-            btnCal.className = targetTab === 'calendar' ? 'flex flex-col items-center gap-1 text-sky-500 font-bold transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-950 dark:hover:text-zinc-50 transition';
-            btnAnal.className = targetTab === 'analytics' ? 'flex flex-col items-center gap-1 text-sky-500 font-bold transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-950 dark:hover:text-zinc-50 transition';
-
-            // Refresh state to guarantee perfect bounds
+        function switchMobileTab(tab) {
+            document.getElementById('paneSchedules').className = tab === 'schedules' ? 'lg:col-span-4 flex flex-col gap-5 block' : 'lg:col-span-4 flex flex-col gap-5 hidden lg:flex';
+            document.getElementById('paneCalendar').className = tab === 'calendar' ? 'lg:col-span-8 flex flex-col gap-4 block' : 'lg:col-span-8 flex flex-col gap-4 hidden lg:block';
+            document.getElementById('paneAnalytics').className = tab === 'analytics' ? 'lg:col-span-12 block' : 'lg:col-span-12 hidden lg:block';
+            ['navSchedulesBtn','navCalendarBtn','navAnalyticsBtn'].forEach(id => document.getElementById(id).className = `flex flex-col items-center gap-1 transition ${id.toLowerCase().includes(tab) ? 'text-sky-500 font-bold' : 'text-slate-400'}`);
             renderApp();
-        }
-
-
-        // PORTABILITY BACKUP ENGINE
-        function checkForUpdates() {
-            showToast('🔄 Checking for hosted updates...');
-            setTimeout(() => {
-                // If hosted on http/https (e.g., GitHub Pages), run a cache-busting reload
-                if (window.location.protocol.startsWith('http')) {
-                    const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
-                    // replace forces reload with the unique cache parameter
-                    window.location.replace(cleanUrl + '?cb=' + Date.now());
-                } else {
-                    // Fallback for local files
-                    window.location.reload();
-                }
-            }, 1000);
         }
 
         function exportData() {
-            const payloadStr = JSON.stringify(state, null, 2);
-            const blob = new Blob([payloadStr], { type: "text/plain;charset=utf-8" });
-            const tempUrl = URL.createObjectURL(blob);
-            
-            const link = document.createElement("a");
-            link.href = tempUrl;
-            link.download = `fintrack_portfolio_backup.txt`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(tempUrl);
-
-            showToast('📂 Backup exported to your downloads folder!');
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement("a"), { href: url, download: "fintrack_backup.txt" });
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+            showToast('📂 Backup exported.');
         }
 
-        function triggerImport() {
-            document.getElementById('importInput').click();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
+        function triggerImport() { document.getElementById('importInput').click(); }
+        function importData(e) {
+            const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function(evt) {
                 try {
-                    let parsed = JSON.parse(e.target.result);
-                    let importedItems = [];
-                    let importedCompletions = {};
-
-                    // Case 1: Standard new schema { items: [...], completions: {...} }
-                    if (parsed && Array.isArray(parsed.items)) {
-                        importedItems = parsed.items;
-                        importedCompletions = parsed.completions || {};
-                    }
-                    // Case 2: Directly a raw array of legacy items [ {id: ...}, {id: ...} ]
-                    else if (Array.isArray(parsed)) {
-                        importedItems = parsed;
-                    }
-                    // Case 3: Legacy schema wrapped in an object like { bills: [...] } or { recurring_bills: [...] }
-                    else if (parsed && typeof parsed === 'object') {
-                        const listKey = Object.keys(parsed).find(k => Array.isArray(parsed[k]));
-                        if (listKey) {
-                            importedItems = parsed[listKey];
-                            const compKey = Object.keys(parsed).find(k => k.toLowerCase().includes('completion'));
-                            if (compKey) importedCompletions = parsed[compKey];
-                        }
-                    }
-
-                    if (importedItems.length > 0) {
-                        // Sanitize & upgrade legacy formats (maps "day" to "dueDay", assigns frequency default etc.)
-                        state.items = importedItems.map(item => {
-                            const id = item.id || Date.now().toString() + Math.random().toString(36).substr(2, 5);
-                            const frequency = item.frequency || 'monthly';
-                            let dueDay = item.dueDay;
-                            if (dueDay === undefined && item.day !== undefined) {
-                                dueDay = parseInt(item.day);
-                            }
-
-                            return {
-                                id: id,
-                                name: item.name || 'Untitled Item',
-                                type: item.type || 'due',
-                                frequency: frequency,
-                                amount: item.amount !== undefined ? parseFloat(item.amount) : 0,
-                                card: item.card || '',
-                                dueDay: dueDay,
-                                dueDay2: item.dueDay2,
-                                dueMonth: item.dueMonth,
-                                onceDate: item.onceDate,
-                                anchorDate: item.anchorDate
-                            };
-                        });
-
-                        state.completions = importedCompletions;
-                        saveState();
-                        rebuildCardFilters();
-                        renderApp();
-                        showToast('🔄 Portfolio restored & upgraded successfully!');
-                    } else {
-                        showToast('❌ Invalid portfolio backup schema.', 'error');
-                    }
-                } catch (err) {
-                    showToast('❌ Failed parsing backup text file.', 'error');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; // Flush input
+                    let imported = JSON.parse(evt.target.result);
+                    if (Array.isArray(imported)) imported = { items: imported.map(b => ({ id: b.id || Date.now().toString()+Math.random(), name: b.name, type: 'due', frequency: 'monthly', amount: b.amount, card: b.card, dueDay: b.day })), completions: {} };
+                    if (imported && imported.items) { state = imported; saveState(); rebuildCardFilters(); renderApp(); showToast('🔄 Portfolio restored.'); }
+                    else showToast('❌ Invalid backup format.', 'error');
+                } catch (err) { showToast('❌ Import failed.', 'error'); }
+            }; reader.readAsText(file); e.target.value = '';
         }
 
-
-        // GLOBAL UTILITY HELPER FUNCTIONS
-        function getFormattedDateKeyStr(dateObj) {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+        function forceAppRefresh() {
+            if (confirm("🔄 Update & Sync FinTrack?\n\nThis forces the browser to pull the latest version from GitHub Pages and clears the local application cache. Your budget data (LocalStorage) will NOT be affected.")) {
+                if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                    window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
+                } else { showToast('ℹ️ Dynamic refresh unavailable on local files.'); }
+            }
         }
 
-        function getMonthName(idx) {
-            return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][idx];
-        }
+        function getFormattedDateKeyStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        function getMonthName(idx) { return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][idx]; }
+        function formatCurrency(num) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num); }
 
-        function formatCurrency(num) {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
-        }
-
-        // Custom non-blocking Toast feedback notifications
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            const bgColor = type === 'success' ? 'bg-zinc-900 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900' : 'bg-rose-600 text-white';
-            toast.className = `p-4 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 select-none ${bgColor}`;
-            toast.innerText = message;
-            
-            container.appendChild(toast);
-            
-            // Animate In
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
-            // Animate Out & Destroy
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = Object.assign(document.createElement('div'), { className: `p-3 rounded-lg shadow-xl text-xs font-bold flex items-center gap-2 transition-all duration-300 transform translate-y-2 opacity-0 select-none ${type === 'success' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-rose-600 text-white'}`, innerText: msg });
+            c.appendChild(t);
+            setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('translate-y-2', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 3000);
         }
     </script>
 </body>
