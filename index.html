@@ -75,12 +75,13 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="p-2 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl text-white shadow-md shadow-sky-500/10">
+                    <!-- Integrated Wallet/Cal icon -->
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </span>
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.2</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.3</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -596,21 +597,72 @@
             const today = new Date();
 
             for (let i = 0; i < first; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: "bg-slate-100/50 dark:bg-zinc-900/30 rounded-xl min-h-[50px] md:min-h-[85px]" }));
+            
             for (let d = 1; d <= total; d++) {
                 const cur = new Date(year, month, d); const todayKey = getFormattedDateKeyStr(cur);
                 const isT = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                 const cell = Object.assign(document.createElement('div'), { className: `p-1 md:p-2 bg-slate-100 dark:bg-zinc-900/60 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl min-h-[55px] md:min-h-[85px] cursor-pointer transition border ${isT ? 'border-sky-500' : 'border-transparent'}` });
                 cell.setAttribute('onclick', `openDayModal('${cur.toISOString()}')`);
-                let inc = 0, due = 0, stm = 0, incTxt = '', dueTxt = '';
+                
+                let hasUnpaidInc = false, hasPaidInc = false;
+                let hasUnpaidDue = false, hasPaidDue = false;
+                let hasUnpaidStm = false, hasPaidStm = false;
+                let incTxt = '', dueTxt = '';
+
                 state.items.forEach(item => {
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
                     if (isItemDueOnDate(item, cur)) {
-                        if (item.type === 'income') { inc = 1; incTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${state.completions[`${todayKey}-${item.id}`]?'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 line-through opacity-50':'bg-emerald-500 text-white'} truncate">💵 ${item.name}</div>`; }
-                        else if (item.type === 'due') { due = 1; dueTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${state.completions[`${todayKey}-${item.id}`]?'bg-rose-500/20 text-rose-500 dark:text-rose-400 line-through opacity-50':'bg-rose-500 text-white'} truncate">💸 ${item.name}</div>`; }
-                        else stm = 1;
+                        const isPaid = state.completions[`${todayKey}-${item.id}`] === true;
+                        if (item.type === 'income') {
+                            if (isPaid) hasPaidInc = true;
+                            else hasUnpaidInc = true;
+                            incTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${isPaid?'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 line-through opacity-50':'bg-emerald-500 text-white'} truncate">💵 ${item.name}</div>`;
+                        } else if (item.type === 'due') {
+                            if (isPaid) hasPaidDue = true;
+                            else hasUnpaidDue = true;
+                            dueTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${isPaid?'bg-rose-500/20 text-rose-500 dark:text-rose-400 line-through opacity-50':'bg-rose-500 text-white'} truncate">💸 ${item.name}</div>`;
+                        } else if (item.type === 'statement') {
+                            if (isPaid) hasPaidStm = true;
+                            else hasUnpaidStm = true;
+                        }
                     }
                 });
-                cell.innerHTML = `<div class="flex justify-between items-center"><span class="text-xs font-extrabold ${isT ? 'text-sky-500' : 'text-slate-700 dark:text-zinc-300'}">${d}</span></div><div class="flex-grow flex flex-col justify-end gap-0.5 overflow-hidden mt-1">${dueTxt}${incTxt}<div class="flex md:hidden gap-1 mt-0.5 justify-center w-full">${inc?'<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>':''}${due?'<span class="w-1.5 h-1.5 rounded-full bg-rose-500 calendar-dot"></span>':''}${stm?'<span class="w-1.5 h-1.5 rounded-full bg-amber-500 calendar-dot"></span>':''}</div></div>`;
+
+                // Generate status-aware indicators for mobile display
+                let incDot = '';
+                if (hasUnpaidInc) {
+                    incDot = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>';
+                } else if (hasPaidInc) {
+                    incDot = '<span class="w-1.5 h-1.5 rounded-full border border-emerald-500/60 bg-emerald-500/25 calendar-dot"></span>';
+                }
+
+                let dueDot = '';
+                if (hasUnpaidDue) {
+                    dueDot = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 calendar-dot"></span>';
+                } else if (hasPaidDue) {
+                    dueDot = '<span class="w-1.5 h-1.5 rounded-full border border-rose-500/60 bg-rose-500/25 calendar-dot"></span>';
+                }
+
+                let stmDot = '';
+                if (hasUnpaidStm) {
+                    stmDot = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 calendar-dot"></span>';
+                } else if (hasPaidStm) {
+                    stmDot = '<span class="w-1.5 h-1.5 rounded-full border border-amber-500/60 bg-amber-500/25 calendar-dot"></span>';
+                }
+
+                cell.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-extrabold ${isT ? 'text-sky-500' : 'text-slate-700 dark:text-zinc-300'}">${d}</span>
+                    </div>
+                    <div class="flex-grow flex flex-col justify-end gap-0.5 overflow-hidden mt-1">
+                        ${dueTxt}
+                        ${incTxt}
+                        <div class="flex md:hidden gap-1 mt-0.5 justify-center w-full">
+                            ${incDot}
+                            ${dueDot}
+                            ${stmDot}
+                        </div>
+                    </div>`;
                 grid.appendChild(cell);
             }
         }
