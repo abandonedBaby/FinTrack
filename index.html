@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bill & Credit Card Tracker</title>
+    <title>FinTrack</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -24,7 +24,6 @@
             }
         }
     </script>
-    <!-- Lucide Icons (Fallback via SVG embedded directly for absolute local/offline safety) -->
     <style>
         /* Smooth page transitions and custom scrollbars */
         ::-webkit-scrollbar {
@@ -61,7 +60,6 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="p-2 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-lg text-white">
-                    <!-- SVG Wallet/Cal icon -->
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </span>
                 <div>
@@ -226,7 +224,7 @@
                         <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 font-bold" id="dirCount">0 Total</span>
                     </div>
 
-                    <input type="text" id="dirSearch" placeholder="🔍 Search scheduled items..." class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 transition">
+                    <input type="text" id="dirSearch" placeholder="🔍 Search scheduled items..." class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 transition">
 
                     <div class="overflow-y-auto max-h-80 flex flex-col gap-1 pr-1" id="directoryList">
                         <!-- Dynamic schedule items list loaded here -->
