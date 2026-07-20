@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.5.7)
+      FinTrack (v1.5.8)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -81,7 +81,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.7</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.8</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -319,7 +319,10 @@
     </nav>
 
     <!-- Day Modal -->
-    <div id="dayModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+    <!-- No backdrop-filter here: WebKit/Safari incorrectly paints backdrop-filtered
+         elements above higher z-index siblings (e.g. the z-[60] toast), which hid
+         toasts fired while this modal was open. bg-black/60 keeps the dimmed scrim. -->
+    <div id="dayModal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
         <div id="dayModalContent" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-3xl md:rounded-2xl max-w-lg w-full p-6 shadow-2xl transition-transform duration-200 transform translate-y-full md:translate-y-0 md:scale-95 flex flex-col gap-4 max-h-[85vh]">
             <div class="flex justify-between items-center">
                 <div>
