@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.5.10)
+      FinTrack (v1.5.11)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -87,7 +87,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.10</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.11</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -324,11 +324,9 @@
         </button>
     </nav>
 
-    <!-- Day Modal -->
-    <!-- No backdrop-filter here: WebKit/Safari incorrectly paints backdrop-filtered
-         elements above higher z-index siblings (e.g. the z-[60] toast), which hid
-         toasts fired while this modal was open. bg-black/60 keeps the dimmed scrim. -->
-    <div id="dayModal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+    <!-- Day Modal. Toasts stay visible above this (see #toastContainer z-index in <style>);
+         the earlier toast bug was a render crash, not backdrop-filter, so the blur is fine. -->
+    <div id="dayModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
         <div id="dayModalContent" class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-t-3xl md:rounded-2xl max-w-lg w-full p-6 shadow-2xl transition-transform duration-200 transform translate-y-full md:translate-y-0 md:scale-95 flex flex-col gap-4 max-h-[85vh]">
             <div class="flex justify-between items-center">
                 <div>
@@ -354,9 +352,11 @@
 
         window.addEventListener('load', () => {
             initAppTheme();
+            const repairedCount = repairData();
             toggleFrequencyFormControls();
             rebuildCardFilters();
             renderApp();
+            if (repairedCount > 0) showToast(`🔧 Repaired ${repairedCount} schedule${repairedCount > 1 ? 's' : ''} with missing data.`);
 
             const swipeZone = document.getElementById('gestureSwipeArea');
             swipeZone.addEventListener('touchstart', (e) => { swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY; }, { passive: true });
@@ -463,6 +463,59 @@
         }
 
         function saveState() { localStorage.setItem('fin_tracker_portfolio', JSON.stringify(state)); }
+
+        // One-time-per-load data repair: older/imported entries can be missing the date
+        // fields their frequency requires, which previously crashed the render. This fills
+        // any missing/invalid fields with safe defaults so every item is valid and editable.
+        // It's idempotent — once data is clean it repairs nothing and returns 0.
+        function repairData() {
+            if (!state || typeof state !== 'object') state = { items: [], completions: {} };
+            if (!Array.isArray(state.items)) state.items = [];
+            if (!state.completions || typeof state.completions !== 'object') state.completions = {};
+
+            const isDay = v => Number.isInteger(v) && v >= 1 && v <= 31;
+            const isMonth = v => Number.isInteger(v) && v >= 0 && v <= 11;
+            const isDateStr = s => typeof s === 'string' && !isNaN(new Date(s + 'T00:00:00').getTime());
+            const todayKey = getFormattedDateKeyStr(new Date());
+
+            let repaired = 0;
+            state.items.forEach(item => {
+                let changed = false;
+                if (typeof item.name !== 'string' || !item.name.trim()) { item.name = item.name ? String(item.name) : 'Untitled'; changed = true; }
+                if (!['due', 'statement', 'income'].includes(item.type)) { item.type = 'due'; changed = true; }
+                if (typeof item.amount !== 'number' || isNaN(item.amount)) { item.amount = parseFloat(item.amount) || 0; changed = true; }
+                if (typeof item.card !== 'string') { item.card = ''; changed = true; }
+
+                switch (item.frequency) {
+                    case 'monthly':
+                        if (!isDay(item.dueDay)) { item.dueDay = 1; changed = true; }
+                        break;
+                    case 'semimonthly':
+                        if (!isDay(item.dueDay)) { item.dueDay = 1; changed = true; }
+                        if (!isDay(item.dueDay2)) { item.dueDay2 = 15; changed = true; }
+                        break;
+                    case '6month':
+                    case 'yearly':
+                        if (!isMonth(item.dueMonth)) { item.dueMonth = 0; changed = true; }
+                        if (!isDay(item.dueDay)) { item.dueDay = 1; changed = true; }
+                        break;
+                    case 'biweekly':
+                        if (!isDateStr(item.anchorDate)) { item.anchorDate = todayKey; changed = true; }
+                        break;
+                    case 'once':
+                        if (!isDateStr(item.onceDate)) { item.onceDate = todayKey; changed = true; }
+                        break;
+                    default:
+                        // Unknown/missing frequency -> treat as monthly on the 1st.
+                        item.frequency = 'monthly';
+                        if (!isDay(item.dueDay)) item.dueDay = 1;
+                        changed = true;
+                }
+                if (changed) repaired++;
+            });
+            if (repaired > 0) saveState();
+            return repaired;
+        }
         document.getElementById('cardFilter').addEventListener('change', renderApp);
 
         function isItemDueOnDate(item, testDate) {
