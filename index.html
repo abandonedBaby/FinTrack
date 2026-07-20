@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.5.8)
+      FinTrack (v1.5.9)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -57,6 +57,12 @@
         .modal-active {
             overflow: hidden;
         }
+        /* Tailwind's z-index scale maxes out at z-50 (the modal). Toasts must sit above it,
+           so pin the container here in plain CSS instead of relying on the Tailwind CDN to
+           generate an arbitrary z-[60] class, which it doesn't always do. */
+        #toastContainer {
+            z-index: 9999;
+        }
         @media (max-width: 768px) {
             .calendar-dot {
                 width: 4px;
@@ -68,7 +74,7 @@
 <body class="bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-50 min-h-screen flex flex-col transition-colors duration-200 pb-20 md:pb-6">
 
     <!-- Toast Container -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+    <div id="toastContainer" class="fixed top-4 right-4 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
     <!-- Header Navigation -->
     <header class="border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-40 px-4 py-3 shadow-sm transition-colors duration-200">
@@ -81,7 +87,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.8</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.9</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
