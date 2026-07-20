@@ -339,8 +339,9 @@
     <script>
         let state = JSON.parse(localStorage.getItem('fin_tracker_portfolio')) || { items: [], completions: {} };
         let currentMode = "month";
-        let anchorDate = new Date(2026, 6, 19); 
+        let anchorDate = new Date(2026, 6, 19);
         let swipeStartX = 0; let swipeStartY = 0;
+        let activeModalDate = null;
 
         window.addEventListener('load', () => {
             initAppTheme();
@@ -691,18 +692,40 @@
         }
 
         function openDayModal(iso) {
-            const target = iso ? new Date(iso) : anchorDate; const dKey = getFormattedDateKeyStr(target);
-            document.getElementById('modalDayTitle').innerText = target.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-            const listC = document.getElementById('modalAgendaContainer'); listC.innerHTML = '';
-            let events = state.items.filter(item => (document.getElementById('cardFilter').value==='all'||item.card===document.getElementById('cardFilter').value) && isItemDueOnDate(item,target));
-            if (!events.length) listC.innerHTML = `<div class="text-center py-10 text-slate-400 flex flex-col items-center gap-2">🌿 <p class="text-xs font-bold">Nothing scheduled.</p></div>`;
-            else events.forEach(item => listC.appendChild(createAgendaRowHTML(item, target, state.completions[`${dKey}-${item.id}`], dKey, true)));
+            activeModalDate = iso ? new Date(iso) : new Date(anchorDate);
+            renderDayModalContents();
             document.body.classList.add('modal-active');
             const mod = document.getElementById('dayModal'); mod.classList.remove('opacity-0', 'pointer-events-none');
             document.getElementById('dayModalContent').classList.remove('translate-y-full', 'scale-95');
         }
 
+        // Renders (or re-renders) the agenda inside the currently-open day modal.
+        // Split out from openDayModal so a live toggle can refresh contents in place
+        // without tearing down/reopening the modal.
+        function renderDayModalContents() {
+            if (!activeModalDate) return;
+            const target = activeModalDate; const dKey = getFormattedDateKeyStr(target);
+            const filterVal = document.getElementById('cardFilter').value;
+            document.getElementById('modalDayTitle').innerText = target.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const listC = document.getElementById('modalAgendaContainer'); listC.innerHTML = '';
+            let events = state.items.filter(item => (filterVal==='all'||item.card===filterVal) && isItemDueOnDate(item,target));
+            if (!events.length) listC.innerHTML = `<div class="text-center py-10 text-slate-400 flex flex-col items-center gap-2">🌿 <p class="text-xs font-bold">Nothing scheduled.</p></div>`;
+            else events.forEach(item => listC.appendChild(createAgendaRowHTML(item, target, state.completions[`${dKey}-${item.id}`], dKey, true)));
+            forceModalRepaint();
+        }
+
+        // On mobile, #dayModalContent is a transformed (composited) layer. Mutating its
+        // subtree from a touch handler without any transform change can skip a repaint,
+        // so the toggled checkbox wouldn't visibly update until the modal was reopened.
+        // Nudging the layer's transform forces the compositor to repaint.
+        function forceModalRepaint() {
+            const content = document.getElementById('dayModalContent');
+            content.style.transform = 'translateZ(0)';
+            requestAnimationFrame(() => { content.style.transform = ''; });
+        }
+
         function closeDayModal() {
+            activeModalDate = null;
             document.body.classList.remove('modal-active');
             const mod = document.getElementById('dayModal'); mod.classList.add('opacity-0', 'pointer-events-none');
             document.getElementById('dayModalContent').classList.add('translate-y-full', 'scale-95');
@@ -717,7 +740,8 @@
         function editFromAgenda(id) { closeDayModal(); populateFormForEdit(id); }
         function togglePaidOccurrence(dKey, id, refM) {
             const key = `${dKey}-${id}`; if (state.completions[key]) delete state.completions[key]; else state.completions[key] = true;
-            saveState(); renderApp(); if (refM) { const p = dKey.split('-'); openDayModal(new Date(p[0],p[1]-1,p[2]).toISOString()); }
+            saveState(); renderApp();
+            if (refM && activeModalDate) renderDayModalContents();
             showToast('💾 Status updated.');
         }
 
