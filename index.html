@@ -81,7 +81,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.3</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.4</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -597,7 +597,6 @@
             const today = new Date();
 
             for (let i = 0; i < first; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: "bg-slate-100/50 dark:bg-zinc-900/30 rounded-xl min-h-[50px] md:min-h-[85px]" }));
-            
             for (let d = 1; d <= total; d++) {
                 const cur = new Date(year, month, d); const todayKey = getFormattedDateKeyStr(cur);
                 const isT = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
@@ -607,7 +606,7 @@
                 let hasUnpaidInc = false, hasPaidInc = false;
                 let hasUnpaidDue = false, hasPaidDue = false;
                 let hasUnpaidStm = false, hasPaidStm = false;
-                let incTxt = '', dueTxt = '';
+                let incTxt = '', dueTxt = '', stmTxt = '';
 
                 state.items.forEach(item => {
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
@@ -624,31 +623,23 @@
                         } else if (item.type === 'statement') {
                             if (isPaid) hasPaidStm = true;
                             else hasUnpaidStm = true;
+                            stmTxt += `<div class="hidden md:block text-[9px] px-1 py-0.5 rounded font-black ${isPaid?'bg-amber-500/20 text-amber-500 dark:text-amber-400 line-through opacity-50':'bg-amber-500 text-white'} truncate">🟡 ${item.name}</div>`;
                         }
                     }
                 });
 
-                // Generate status-aware indicators for mobile display
+                // Generate status-aware dot classes for mobile
                 let incDot = '';
-                if (hasUnpaidInc) {
-                    incDot = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>';
-                } else if (hasPaidInc) {
-                    incDot = '<span class="w-1.5 h-1.5 rounded-full border border-emerald-500/60 bg-emerald-500/25 calendar-dot"></span>';
-                }
+                if (hasUnpaidInc) incDot = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>';
+                else if (hasPaidInc) incDot = '<span class="w-1.5 h-1.5 rounded-full border border-emerald-500/60 bg-emerald-500/25 calendar-dot"></span>';
 
                 let dueDot = '';
-                if (hasUnpaidDue) {
-                    dueDot = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 calendar-dot"></span>';
-                } else if (hasPaidDue) {
-                    dueDot = '<span class="w-1.5 h-1.5 rounded-full border border-rose-500/60 bg-rose-500/25 calendar-dot"></span>';
-                }
+                if (hasUnpaidDue) dueDot = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 calendar-dot"></span>';
+                else if (hasPaidDue) dueDot = '<span class="w-1.5 h-1.5 rounded-full border border-rose-500/60 bg-rose-500/25 calendar-dot"></span>';
 
                 let stmDot = '';
-                if (hasUnpaidStm) {
-                    stmDot = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 calendar-dot"></span>';
-                } else if (hasPaidStm) {
-                    stmDot = '<span class="w-1.5 h-1.5 rounded-full border border-amber-500/60 bg-amber-500/25 calendar-dot"></span>';
-                }
+                if (hasUnpaidStm) stmDot = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 calendar-dot"></span>';
+                else if (hasPaidStm) stmDot = '<span class="w-1.5 h-1.5 rounded-full border border-amber-500/60 bg-amber-500/25 calendar-dot"></span>';
 
                 cell.innerHTML = `
                     <div class="flex justify-between items-center">
@@ -656,6 +647,7 @@
                     </div>
                     <div class="flex-grow flex flex-col justify-end gap-0.5 overflow-hidden mt-1">
                         ${dueTxt}
+                        ${stmTxt}
                         ${incTxt}
                         <div class="flex md:hidden gap-1 mt-0.5 justify-center w-full">
                             ${incDot}
