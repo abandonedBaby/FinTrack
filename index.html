@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.5.2)
+      FinTrack (v1.5.6)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -81,7 +81,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.4</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.5.6</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -714,14 +714,16 @@
             forceModalRepaint();
         }
 
-        // On mobile, #dayModalContent is a transformed (composited) layer. Mutating its
-        // subtree from a touch handler without any transform change can skip a repaint,
-        // so the toggled checkbox wouldn't visibly update until the modal was reopened.
-        // Nudging the layer's transform forces the compositor to repaint.
+        // #dayModalContent is a transformed (composited) layer. On some browsers, mutating
+        // its subtree without any layout/transform change can skip a repaint, so the toggled
+        // checkbox wouldn't visibly update until the modal was reopened. A synchronous reflow
+        // (display off -> read layout -> on) forces the layer to flush pending paints. It runs
+        // entirely before the next frame, so there is no visible flicker.
         function forceModalRepaint() {
             const content = document.getElementById('dayModalContent');
-            content.style.transform = 'translateZ(0)';
-            requestAnimationFrame(() => { content.style.transform = ''; });
+            content.style.display = 'none';
+            void content.offsetHeight;
+            content.style.display = '';
         }
 
         function closeDayModal() {
@@ -740,8 +742,11 @@
         function editFromAgenda(id) { closeDayModal(); populateFormForEdit(id); }
         function togglePaidOccurrence(dKey, id, refM) {
             const key = `${dKey}-${id}`; if (state.completions[key]) delete state.completions[key]; else state.completions[key] = true;
-            saveState(); renderApp();
+            saveState();
+            // Refresh the open popup FIRST so a failure/slowness in the full app re-render
+            // can never leave the popup showing a stale checkbox.
             if (refM && activeModalDate) renderDayModalContents();
+            renderApp();
             showToast('💾 Status updated.');
         }
 
