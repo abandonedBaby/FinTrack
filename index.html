@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.6.0)
+      FinTrack (v1.7.0)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -133,7 +133,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.6.0</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.7.0</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -367,6 +367,52 @@
                         <input type="file" id="importInput" accept=".txt" class="hidden" onchange="importData(event)">
                     </div>
                 </div>
+
+                <!-- Cloud Sync (GitHub Gist) — opt-in, default off -->
+                <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm mt-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                            </span>
+                            <div>
+                                <h3 class="font-extrabold text-sm">Cloud Sync <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 align-middle">Optional</span></h3>
+                                <p class="text-xs text-slate-500 dark:text-zinc-400">Sync this device with your own private GitHub Gist. Nothing leaves this device unless you add a token.</p>
+                                <p class="text-[11px] font-bold mt-1" id="syncStatus">Off — add a token to enable sync.</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleSyncSettings()" id="syncGearBtn" class="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-300 transition shrink-0" aria-label="Sync settings">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Settings (collapsed by default) -->
+                    <div id="syncSettings" class="hidden flex-col gap-3 border-t border-slate-200 dark:border-zinc-800 pt-4">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">GitHub Token (gist scope)</label>
+                            <input type="password" id="syncToken" autocomplete="off" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500 transition" placeholder="ghp_… (stored only in this browser)">
+                            <p class="text-[10px] text-slate-400 mt-1">Create one at github.com → Settings → Developer settings → Personal access tokens (classic), scope: <b>gist</b> only.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Gist ID <span class="normal-case font-medium text-slate-400">(auto-filled after first Push; paste on your 2nd device)</span></label>
+                            <input type="text" id="syncGistId" autocomplete="off" class="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-500 transition" placeholder="(leave blank on first device)">
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="saveSyncSettings()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 px-4 text-xs font-bold transition">Save Settings</button>
+                            <button onclick="disconnectSync()" class="border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg py-2 px-4 text-xs font-bold transition">Forget Token</button>
+                        </div>
+                    </div>
+
+                    <!-- Sync actions -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="pushToGist()" id="syncPushBtn" class="flex-grow md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/15 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> Push (this device → cloud)
+                        </button>
+                        <button onclick="pullFromGist()" id="syncPullBtn" class="flex-grow md:flex-none border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg py-2 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg> Pull (cloud → this device)
+                        </button>
+                    </div>
+                </div>
             </section>
 
         </div>
@@ -423,6 +469,7 @@
             toggleFrequencyFormControls();
             rebuildCardFilters();
             renderApp();
+            renderSyncStatus();
 
             const swipeZone = document.getElementById('gestureSwipeArea');
             swipeZone.addEventListener('touchstart', (e) => { swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY; }, { passive: true });
@@ -871,6 +918,91 @@
             const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement("a"), { href: url, download: "fintrack_backup.txt" });
             document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
             showToast('📂 Backup exported.');
+        }
+
+        /* ---------- Cloud Sync (GitHub Gist) — opt-in ---------- */
+        // Stored SEPARATELY from portfolio data so the token is never part of an Export.
+        let syncConfig = JSON.parse(localStorage.getItem('fin_sync_config')) || { token: '', gistId: '' };
+        const SYNC_FILENAME = 'fintrack_data.json';
+
+        function saveSyncConfig() { localStorage.setItem('fin_sync_config', JSON.stringify(syncConfig)); }
+
+        function toggleSyncSettings() { document.getElementById('syncSettings').classList.toggle('hidden'); }
+
+        function renderSyncStatus() {
+            const s = document.getElementById('syncStatus');
+            const pushBtn = document.getElementById('syncPushBtn');
+            const pullBtn = document.getElementById('syncPullBtn');
+            document.getElementById('syncToken').value = syncConfig.token || '';
+            document.getElementById('syncGistId').value = syncConfig.gistId || '';
+            const on = !!syncConfig.token;
+            pushBtn.disabled = !on;
+            pullBtn.disabled = !on || !syncConfig.gistId;
+            if (!on) { s.className = 'text-[11px] font-bold mt-1 text-slate-400'; s.innerText = 'Off — add a token to enable sync.'; }
+            else if (!syncConfig.gistId) { s.className = 'text-[11px] font-bold mt-1 text-amber-500'; s.innerText = 'Token set · no gist yet — hit Push to create one.'; }
+            else { s.className = 'text-[11px] font-bold mt-1 text-emerald-500'; s.innerText = `Connected · gist ${syncConfig.gistId.slice(0, 10)}…`; }
+        }
+
+        function saveSyncSettings() {
+            syncConfig.token = document.getElementById('syncToken').value.trim();
+            syncConfig.gistId = document.getElementById('syncGistId').value.trim();
+            saveSyncConfig(); renderSyncStatus();
+            showToast(syncConfig.token ? '🔗 Sync settings saved.' : 'ℹ️ Sync turned off.');
+        }
+
+        function disconnectSync() {
+            if (!confirm('Forget the token and gist ID on THIS device? Your cloud gist and data are not deleted.')) return;
+            syncConfig = { token: '', gistId: '' }; saveSyncConfig(); renderSyncStatus();
+            showToast('🔌 Sync disconnected on this device.');
+        }
+
+        async function gistApi(path, method, body) {
+            const res = await fetch('https://api.github.com/gists' + path, {
+                method,
+                headers: {
+                    'Authorization': 'Bearer ' + syncConfig.token,
+                    'Accept': 'application/vnd.github+json',
+                    'Content-Type': 'application/json'
+                },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            if (!res.ok) {
+                const hint = res.status === 401 ? ' (token invalid or missing gist scope)' : res.status === 404 ? ' (gist ID not found for this token)' : '';
+                throw new Error('GitHub ' + res.status + hint);
+            }
+            return res.json();
+        }
+
+        async function pushToGist() {
+            if (!syncConfig.token) { showToast('❌ Add a token first.', 'error'); return; }
+            try {
+                showToast('⬆️ Pushing to cloud…');
+                const files = {}; files[SYNC_FILENAME] = { content: JSON.stringify(state, null, 2) };
+                if (syncConfig.gistId) {
+                    await gistApi('/' + syncConfig.gistId, 'PATCH', { files });
+                } else {
+                    const data = await gistApi('', 'POST', { description: 'FinTrack sync data (private)', public: false, files });
+                    syncConfig.gistId = data.id; saveSyncConfig(); renderSyncStatus();
+                }
+                showToast('✅ Pushed to cloud.');
+            } catch (e) { showToast('❌ Push failed: ' + e.message, 'error'); }
+        }
+
+        async function pullFromGist() {
+            if (!syncConfig.token || !syncConfig.gistId) { showToast('❌ Nothing to pull yet.', 'error'); return; }
+            if (!confirm("Pull cloud data and REPLACE what's on this device? Any local changes not yet pushed will be lost.")) return;
+            try {
+                showToast('⬇️ Pulling from cloud…');
+                const data = await gistApi('/' + syncConfig.gistId, 'GET');
+                const file = data.files && data.files[SYNC_FILENAME];
+                if (!file) throw new Error('gist has no ' + SYNC_FILENAME);
+                let content = file.content;
+                if (file.truncated && file.raw_url) content = await (await fetch(file.raw_url)).text();
+                const imported = JSON.parse(content);
+                if (!imported || !Array.isArray(imported.items)) throw new Error('data format invalid');
+                state = imported; ensureStateShape(); saveState(); rebuildCardFilters(); renderApp();
+                showToast('✅ Pulled from cloud.');
+            } catch (e) { showToast('❌ Pull failed: ' + e.message, 'error'); }
         }
 
         function triggerImport() { document.getElementById('importInput').click(); }
