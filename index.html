@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.8.0)
+      FinTrack (v1.8.1)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -141,7 +141,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.8.0</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.8.1</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -470,6 +470,7 @@
         let anchorDate = new Date(2026, 6, 19);
         let swipeStartX = 0; let swipeStartY = 0;
         let activeModalDate = null;
+        let monthChipCap = 3; // desktop: how many chips fit per day cell; measured after layout
 
         window.addEventListener('load', () => {
             initAppTheme();
@@ -756,6 +757,29 @@
             const reserve = legendH + 50; // legend margins + card padding + breathing room
             const h = Math.max(window.innerHeight - absTop - reserve, 380);
             grid.style.height = h + 'px';
+            applyMonthChipCap();
+        }
+
+        // Measure how many chips actually fit in a day cell (all rows are equal height) and,
+        // if that differs from the current cap, redraw the month so every cell shows whole
+        // chips plus a guaranteed-visible "+N more". Avoids mid-list clipping.
+        function applyMonthChipCap() {
+            if (!isDesktop() || currentMode !== 'month') return;
+            const grid = document.getElementById('monthGrid');
+            const sample = grid.querySelector('.day-chip');
+            if (!sample) return; // no events this month
+            let cell = sample; while (cell.parentElement && cell.parentElement !== grid) cell = cell.parentElement;
+            const cellRect = cell.getBoundingClientRect();
+            const chipRect = sample.getBoundingClientRect();
+            const gap = 4;
+            const chipRowH = chipRect.height + gap;               // chip + inter-chip gap
+            const available = (cellRect.bottom - 10) - chipRect.top; // minus cell bottom padding
+            // n lines fit when n*chipH + (n-1)*gap <= available  →  n = floor((available+gap)/chipRowH)
+            const cap = Math.max(Math.floor((available + gap) / chipRowH), 1);
+            if (cap !== monthChipCap) {
+                monthChipCap = cap;
+                renderMonthView(anchorDate.getFullYear(), anchorDate.getMonth(), document.getElementById('cardFilter').value);
+            }
         }
 
         // Escape a string for safe use inside an HTML attribute (e.g. title tooltips).
@@ -772,7 +796,7 @@
             const [bg, text, dot] = styles[item.type] || styles.due;
             const paidCls = isPaid ? 'line-through opacity-55' : '';
             const dotCls = isPaid ? dot + ' opacity-40' : dot;
-            return `<div title="${escAttr(item.name)}" class="hidden md:flex items-center gap-1 ${bg} ${text} ${paidCls} px-1.5 py-0.5 rounded-md min-w-0"><span class="w-1.5 h-1.5 rounded-full ${dotCls} shrink-0"></span><span class="truncate text-[10px] lg:text-[11px] font-bold">${item.name}</span></div>`;
+            return `<div title="${escAttr(item.name)}" class="day-chip hidden md:flex items-center gap-1 ${bg} ${text} ${paidCls} px-1.5 py-0.5 rounded-md min-w-0"><span class="w-1.5 h-1.5 rounded-full ${dotCls} shrink-0"></span><span class="truncate text-[10px] lg:text-[11px] font-bold">${item.name}</span></div>`;
         }
 
         function renderMonthView(year, month, cardFilter) {
@@ -788,7 +812,7 @@
                 const cell = Object.assign(document.createElement('div'), { className: `p-1 md:p-2 lg:p-2.5 bg-slate-100 dark:bg-zinc-900/60 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl min-h-[55px] md:min-h-[85px] lg:min-h-[130px] cursor-pointer transition border ${isT ? 'border-sky-500' : 'border-transparent'}` });
                 cell.setAttribute('onclick', `openDayModal('${cur.toISOString()}')`);
                 
-                const CHIP_CAP = 4;
+                const cap = isDesktop() ? monthChipCap : 4;
                 const evts = [];
                 let hasUnpaidInc = false, hasPaidInc = false;
                 let hasUnpaidDue = false, hasPaidDue = false;
@@ -808,10 +832,12 @@
                 const typeOrder = { due: 0, statement: 1, income: 2 };
                 evts.sort((a, b) => typeOrder[a.item.type] - typeOrder[b.item.type]);
 
-                // Desktop (md+): compact chips, capped, with a "+N more" note; full list on click.
-                let chips = evts.slice(0, CHIP_CAP).map(e => monthChipHTML(e.item, e.isPaid)).join('');
-                const overflow = evts.length - CHIP_CAP;
-                if (overflow > 0) chips += `<div class="hidden md:block text-[10px] lg:text-[11px] font-bold text-slate-400 dark:text-zinc-500 px-1 mt-0.5">+${overflow} more</div>`;
+                // Desktop (md+): show only as many chips as fit the row, then a "+N more" note
+                // (which reserves its own line). Full list on click. cap is measured post-layout.
+                let visible = evts, overflow = 0;
+                if (evts.length > cap) { visible = evts.slice(0, Math.max(cap - 1, 1)); overflow = evts.length - visible.length; }
+                let chips = visible.map(e => monthChipHTML(e.item, e.isPaid)).join('');
+                if (overflow > 0) chips += `<div class="chip-more hidden md:block text-[10px] lg:text-[11px] font-bold text-slate-400 dark:text-zinc-500 px-1 mt-0.5">+${overflow} more</div>`;
 
                 // Mobile: status-aware colored dots (unchanged).
                 let incDot = '';
