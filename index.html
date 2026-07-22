@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.7.1)
+      FinTrack (v1.8.0)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -141,7 +141,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.7.1</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.8.0</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -758,6 +758,23 @@
             grid.style.height = h + 'px';
         }
 
+        // Escape a string for safe use inside an HTML attribute (e.g. title tooltips).
+        function escAttr(s) { return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+        // A compact month-cell chip: a colored type-dot + truncated name on a light tint.
+        // Full name shows on hover (title) and when the day is opened. Desktop only (md+).
+        function monthChipHTML(item, isPaid) {
+            const styles = {
+                due:       ['bg-rose-500/15',    'text-rose-600 dark:text-rose-300',      'bg-rose-500'],
+                statement: ['bg-amber-500/15',   'text-amber-600 dark:text-amber-300',    'bg-amber-500'],
+                income:    ['bg-emerald-500/15', 'text-emerald-600 dark:text-emerald-300', 'bg-emerald-500']
+            };
+            const [bg, text, dot] = styles[item.type] || styles.due;
+            const paidCls = isPaid ? 'line-through opacity-55' : '';
+            const dotCls = isPaid ? dot + ' opacity-40' : dot;
+            return `<div title="${escAttr(item.name)}" class="hidden md:flex items-center gap-1 ${bg} ${text} ${paidCls} px-1.5 py-0.5 rounded-md min-w-0"><span class="w-1.5 h-1.5 rounded-full ${dotCls} shrink-0"></span><span class="truncate text-[10px] lg:text-[11px] font-bold">${item.name}</span></div>`;
+        }
+
         function renderMonthView(year, month, cardFilter) {
             const grid = document.getElementById('monthGrid'); grid.innerHTML = '';
             const first = new Date(year, month, 1).getDay();
@@ -771,32 +788,32 @@
                 const cell = Object.assign(document.createElement('div'), { className: `p-1 md:p-2 lg:p-2.5 bg-slate-100 dark:bg-zinc-900/60 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-xl min-h-[55px] md:min-h-[85px] lg:min-h-[130px] cursor-pointer transition border ${isT ? 'border-sky-500' : 'border-transparent'}` });
                 cell.setAttribute('onclick', `openDayModal('${cur.toISOString()}')`);
                 
+                const CHIP_CAP = 4;
+                const evts = [];
                 let hasUnpaidInc = false, hasPaidInc = false;
                 let hasUnpaidDue = false, hasPaidDue = false;
                 let hasUnpaidStm = false, hasPaidStm = false;
-                let incTxt = '', dueTxt = '', stmTxt = '';
 
                 state.items.forEach(item => {
                     if (cardFilter !== 'all' && item.card !== cardFilter) return;
                     if (isItemDueOnDate(item, cur)) {
                         const isPaid = state.completions[`${todayKey}-${item.id}`] === true;
-                        if (item.type === 'income') {
-                            if (isPaid) hasPaidInc = true;
-                            else hasUnpaidInc = true;
-                            incTxt += `<div class="hidden md:block text-[9px] lg:text-[11px] px-1 py-0.5 lg:px-1.5 lg:py-1 rounded font-black ${isPaid?'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 line-through opacity-50':'bg-emerald-500 text-white'} truncate">💵 ${item.name}</div>`;
-                        } else if (item.type === 'due') {
-                            if (isPaid) hasPaidDue = true;
-                            else hasUnpaidDue = true;
-                            dueTxt += `<div class="hidden md:block text-[9px] lg:text-[11px] px-1 py-0.5 lg:px-1.5 lg:py-1 rounded font-black ${isPaid?'bg-rose-500/20 text-rose-500 dark:text-rose-400 line-through opacity-50':'bg-rose-500 text-white'} truncate">💸 ${item.name}</div>`;
-                        } else if (item.type === 'statement') {
-                            if (isPaid) hasPaidStm = true;
-                            else hasUnpaidStm = true;
-                            stmTxt += `<div class="hidden md:block text-[9px] lg:text-[11px] px-1 py-0.5 lg:px-1.5 lg:py-1 rounded font-black ${isPaid?'bg-amber-500/20 text-amber-500 dark:text-amber-400 line-through opacity-50':'bg-amber-500 text-white'} truncate">🟡 ${item.name}</div>`;
-                        }
+                        evts.push({ item, isPaid });
+                        if (item.type === 'income') { isPaid ? (hasPaidInc = true) : (hasUnpaidInc = true); }
+                        else if (item.type === 'due') { isPaid ? (hasPaidDue = true) : (hasUnpaidDue = true); }
+                        else if (item.type === 'statement') { isPaid ? (hasPaidStm = true) : (hasUnpaidStm = true); }
                     }
                 });
+                // Order chips: bills, then statements, then income (matches the legend).
+                const typeOrder = { due: 0, statement: 1, income: 2 };
+                evts.sort((a, b) => typeOrder[a.item.type] - typeOrder[b.item.type]);
 
-                // Generate status-aware dot classes for mobile
+                // Desktop (md+): compact chips, capped, with a "+N more" note; full list on click.
+                let chips = evts.slice(0, CHIP_CAP).map(e => monthChipHTML(e.item, e.isPaid)).join('');
+                const overflow = evts.length - CHIP_CAP;
+                if (overflow > 0) chips += `<div class="hidden md:block text-[10px] lg:text-[11px] font-bold text-slate-400 dark:text-zinc-500 px-1 mt-0.5">+${overflow} more</div>`;
+
+                // Mobile: status-aware colored dots (unchanged).
                 let incDot = '';
                 if (hasUnpaidInc) incDot = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 calendar-dot"></span>';
                 else if (hasPaidInc) incDot = '<span class="w-1.5 h-1.5 rounded-full border border-emerald-500/60 bg-emerald-500/25 calendar-dot"></span>';
@@ -813,10 +830,8 @@
                     <div class="flex justify-between items-center">
                         <span class="text-xs lg:text-sm font-extrabold ${isT ? 'text-sky-500' : 'text-slate-700 dark:text-zinc-300'}">${d}</span>
                     </div>
-                    <div class="flex-grow flex flex-col justify-end gap-0.5 lg:gap-1 overflow-hidden mt-1">
-                        ${dueTxt}
-                        ${stmTxt}
-                        ${incTxt}
+                    <div class="flex-grow flex flex-col justify-start gap-0.5 lg:gap-1 overflow-hidden mt-1">
+                        ${chips}
                         <div class="flex md:hidden gap-1 mt-0.5 justify-center w-full">
                             ${incDot}
                             ${dueDot}
