@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 
-      FinTrack (v1.7.0)
+      FinTrack (v1.7.1)
       A self-contained, offline-first personal financial scheduler.
       Data is stored locally in your browser (LocalStorage).
     -->
@@ -109,6 +109,14 @@
         @media (min-width: 1024px) {
             #schedulesDrawerHeader { display: flex; }
         }
+        /* Desktop month view fits the viewport: JS sets #monthGrid height, and these rules
+           make every week-row share it equally (1fr) and let cells shrink below their
+           min-height so all rows stay on-screen without scrolling. Busy days clip and can
+           be opened for the full list. Mobile/week/day views are unaffected. */
+        @media (min-width: 1024px) {
+            #monthGrid.cal-fit { grid-auto-rows: 1fr; }
+            #monthGrid.cal-fit > div { min-height: 0 !important; overflow: hidden; }
+        }
         @media (max-width: 768px) {
             .calendar-dot {
                 width: 4px;
@@ -133,7 +141,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-950 to-slate-800 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">FinTrack</h1>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.7.0</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">v1.7.1</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Schedule, Cash Flow & Budgeting</p>
                 </div>
@@ -334,7 +342,7 @@
                             <div class="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-5" id="dayViewContainer"></div>
                         </div>
                     </div>
-                    <div class="flex items-center flex-wrap gap-4 mt-4 pt-3 border-t border-slate-200 dark:border-zinc-800 text-xs">
+                    <div id="calLegend" class="flex items-center flex-wrap gap-4 mt-4 pt-3 border-t border-slate-200 dark:border-zinc-800 text-xs">
                         <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Bill Due</div>
                         <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Statement Close</div>
                         <div class="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-zinc-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Payday/Income</div>
@@ -470,6 +478,9 @@
             rebuildCardFilters();
             renderApp();
             renderSyncStatus();
+            window.addEventListener('resize', () => requestAnimationFrame(fitCalendarHeight));
+            // Tailwind's CDN applies styles just after load; re-fit once layout settles.
+            setTimeout(fitCalendarHeight, 200);
 
             const swipeZone = document.getElementById('gestureSwipeArea');
             swipeZone.addEventListener('touchstart', (e) => { swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY; }, { passive: true });
@@ -727,6 +738,24 @@
                 renderDayView(anchorDate, cardFilter);
             }
             renderStatistics(); renderListAndDirectory();
+            requestAnimationFrame(fitCalendarHeight);
+        }
+
+        // Desktop only: size the month grid so all week-rows fit the viewport (no scroll to
+        // see the last row). Uses the grid's absolute doc position so it's correct regardless
+        // of current scroll. No-op on mobile or in week/day mode (styles are cleared there).
+        function fitCalendarHeight() {
+            const grid = document.getElementById('monthGrid');
+            if (!grid) return;
+            if (!isDesktop() || currentMode !== 'month') { grid.style.height = ''; grid.classList.remove('cal-fit'); return; }
+            grid.classList.add('cal-fit');
+            grid.style.height = 'auto';
+            const legend = document.getElementById('calLegend');
+            const absTop = grid.getBoundingClientRect().top + window.scrollY;
+            const legendH = legend ? legend.getBoundingClientRect().height : 40;
+            const reserve = legendH + 50; // legend margins + card padding + breathing room
+            const h = Math.max(window.innerHeight - absTop - reserve, 380);
+            grid.style.height = h + 'px';
         }
 
         function renderMonthView(year, month, cardFilter) {
